@@ -1,19 +1,41 @@
+import { notFound } from "next/navigation";
 import { CardMateria } from "@/components/CardMateria";
 import { TemporizadorPomodoro } from "@/components/TemporizadorPomodoro";
 import { UploadPlan } from "@/components/UploadPlan";
+import { requireAuthUser } from "@/lib/auth";
+import { cargarPlanYAvance } from "@/lib/datos";
+import { estadoVisualMateria } from "@/lib/plan";
 
 type MateriaPageProps = {
   params: { id: string };
 };
 
-export default function MateriaPage({ params }: MateriaPageProps) {
+export const dynamic = "force-dynamic";
+
+export default async function MateriaPage({ params }: MateriaPageProps) {
+  const user = await requireAuthUser();
+  const materiaId = decodeURIComponent(params.id);
+  const { plan, avance } = await cargarPlanYAvance(user.id);
+  const materia = plan?.materias.find((item) => item.id === materiaId);
+
+  if (!materia || !plan) {
+    notFound();
+  }
+
+  const estado = avance.get(materia.id) ?? "pendiente";
+
   return (
     <main className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div className="space-y-6">
         <CardMateria
-          nombre={`Materia ${params.id}`}
-          codigo={params.id}
-          estado="cursando"
+          nombre={materia.nombre}
+          codigo={materia.codigo ?? materia.id}
+          estado={estadoVisualMateria(
+            materia.id,
+            estado,
+            plan.correlativas,
+            avance,
+          )}
         />
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

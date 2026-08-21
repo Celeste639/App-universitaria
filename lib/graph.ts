@@ -79,3 +79,16 @@ export function rankingEstrategico(
     return a.materia.nombre.localeCompare(b.materia.nombre, "es");
   });
 }
+
+export function explicarRankingLocal(item: RankingMateria): string {
+  if (item.puntaje === 0) {
+    return `${item.materia.nombre} no desbloquea otras materias pendientes.`;
+  }
+
+  const directas = item.desbloqueaDirectas.join(", ");
+  if (item.desbloqueaIndirectas.length === 0) {
+    return `Priorizá ${item.materia.nombre} porque desbloquea ${directas}.`;
+  }
+
+  return `Priorizá ${item.materia.nombre} porque desbloquea ${directas} y, más adelante, ${item.desbloqueaIndirectas.join(", ")}.`;
+}

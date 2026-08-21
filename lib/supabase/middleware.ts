@@ -1,7 +1,9 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 import { hasSupabaseConfig } from "@/lib/env";
 import type { Database } from "@/types/database";
+
+const RUTAS_PUBLICAS = new Set(["/", "/login", "/registro"]);
 
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -30,6 +32,25 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const path = request.nextUrl.pathname;
+  const esPublica = RUTAS_PUBLICAS.has(path);
+
+  if (!user && !esPublica) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", path);
+    return NextResponse.redirect(url, { headers: response.headers });
+  }
+
+  if (user && (path === "/login" || path === "/registro")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url, { headers: response.headers });
+  }
+
   return response;
 }
