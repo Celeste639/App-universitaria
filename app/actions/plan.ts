@@ -16,6 +16,24 @@ function nombreArchivoSeguro(nombre: string): string {
   return nombre.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "plan";
 }
 
+function mensajeErrorSupabase(
+  error: { code?: string; message?: string },
+  fallback: string,
+): string {
+  const texto = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
+  if (
+    texto.includes("pgrst205") ||
+    texto.includes("schema cache") ||
+    texto.includes("does not exist")
+  ) {
+    return "Faltan las tablas en Supabase. Abrí el SQL Editor, pegá supabase/schema.sql y dale Run.";
+  }
+  if (texto.includes("row-level security") || texto.includes("rls")) {
+    return "Supabase rechazó el guardado por permisos. Volvé a ejecutar supabase/schema.sql completo (incluye las políticas RLS).";
+  }
+  return fallback;
+}
+
 export async function completarOnboarding(
   formData: FormData,
 ): Promise<ResultadoAccion<PlanEstudioParseado>> {
@@ -56,8 +74,10 @@ export async function completarOnboarding(
   if (errorPlan) {
     return {
       ok: false,
-      error:
+      error: mensajeErrorSupabase(
+        errorPlan,
         "No pude guardar el plan en la base. Ejecutá supabase/schema.sql en el SQL Editor de Supabase.",
+      ),
     };
   }
 
@@ -72,7 +92,13 @@ export async function completarOnboarding(
   });
 
   if (errorPerfil) {
-    return { ok: false, error: "El plan se leyó, pero no pude guardar tu perfil." };
+    return {
+      ok: false,
+      error: mensajeErrorSupabase(
+        errorPerfil,
+        "El plan se leyó, pero no pude guardar tu perfil.",
+      ),
+    };
   }
 
   const { error: errorAvance } = await supabase.from("avance_carrera").upsert(
@@ -87,7 +113,10 @@ export async function completarOnboarding(
   if (errorAvance) {
     return {
       ok: false,
-      error: "El plan se guardó, pero no pude inicializar el avance de carrera.",
+      error: mensajeErrorSupabase(
+        errorAvance,
+        "El plan se guardó, pero no pude inicializar el avance de carrera.",
+      ),
     };
   }
 
