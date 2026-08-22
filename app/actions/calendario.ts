@@ -7,17 +7,12 @@ import { cargarPerfilEstudiante } from "@/lib/perfil";
 import { perfilParaPrompt, SYSTEM_GENERAR_CALENDARIO } from "@/lib/prompts";
 import type { Json } from "@/types/database";
 import type {
+  CalendarioGenerado,
   EventoCalendario,
   RankingMateria,
   ResultadoAccion,
   TipoEventoCalendario,
 } from "@/lib/types";
-
-export type CalendarioGenerado = {
-  eventos: EventoCalendario[];
-  avisos: string[];
-  resumen: string;
-};
 
 const TIPOS_EVENTO = new Set<TipoEventoCalendario>([
   "estudio",
@@ -232,7 +227,11 @@ ${JSON.stringify(
       {
         user_id: userId,
         semana,
-        eventos: generado.eventos as unknown as Json,
+        eventos: {
+          resumen: generado.resumen,
+          avisos: generado.avisos,
+          items: generado.eventos,
+        } as unknown as Json,
       },
       { onConflict: "user_id,semana" },
     );

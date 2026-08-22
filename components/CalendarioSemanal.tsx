@@ -62,7 +62,7 @@ export function CalendarioSemanal({
   return (
     <div className="space-y-4">
       {resumen && (
-        <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700">
+        <p className="rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm leading-relaxed text-clever-ink">
           {resumen}
         </p>
       )}
@@ -79,7 +79,7 @@ export function CalendarioSemanal({
           ))}
         </div>
       )}
-      <div className="h-[420px] rounded-xl border border-slate-200 bg-white p-2 sm:h-[560px]">
+      <div className="h-[420px] rounded-xl border border-clever-sand bg-clever-cream p-2 sm:h-[560px]">
         <Calendar
           localizer={localizer}
           events={eventosVista}

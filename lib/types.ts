@@ -55,6 +55,12 @@ export type EventoCalendario = {
   aviso?: string;
 };
 
+export type CalendarioGenerado = {
+  eventos: EventoCalendario[];
+  avisos: string[];
+  resumen: string;
+};
+
 export type RankingMateria = {
   materia: Materia;
   puntaje: number;

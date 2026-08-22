@@ -16,12 +16,12 @@ export default async function HistorialPage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           Historial de avance
         </h1>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-clever-muted">
           Cargá tu plan para ver el porcentaje de la carrera.
         </p>
         <Link
           href="/onboarding"
-          className="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="inline-flex rounded-lg bg-clever-skyDeep px-4 py-2 text-sm font-medium text-white hover:bg-[#4d92b3]"
         >
           Ir al onboarding
         </Link>
@@ -41,22 +41,22 @@ export default async function HistorialPage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           Historial de avance
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-clever-muted">
           Materias aprobadas, en curso, habilitadas y bloqueadas según el plan
           cargado.
         </p>
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm font-medium text-slate-500">Completado</p>
+      <section className="rounded-xl border border-clever-sand bg-clever-cream p-5 shadow-sm">
+        <p className="text-sm font-medium text-clever-muted">Completado</p>
         <p className="mt-1 text-3xl font-semibold">{porcentaje}%</p>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-clever-sand">
           <div
-            className="h-full rounded-full bg-indigo-600"
+            className="h-full rounded-full bg-clever-skyDeep"
             style={{ width: `${porcentaje}%` }}
           />
         </div>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-clever-muted">
           {aprobadas} de {total} materias aprobadas
         </p>
       </section>

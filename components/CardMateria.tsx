@@ -6,22 +6,22 @@ const ESTILOS: Record<
   { wrap: string; badge: string; etiqueta: string }
 > = {
   habilitada: {
-    wrap: "border-emerald-200 bg-emerald-50",
-    badge: "bg-emerald-100 text-emerald-800",
+    wrap: "border-clever-skyMid bg-clever-sky",
+    badge: "bg-white/80 text-clever-ink",
     etiqueta: "Habilitada",
   },
   cursando: {
-    wrap: "border-sky-200 bg-sky-50",
-    badge: "bg-sky-100 text-sky-800",
+    wrap: "border-clever-skyDeep bg-clever-cream",
+    badge: "bg-clever-sky text-clever-ink",
     etiqueta: "Cursando",
   },
   aprobada: {
-    wrap: "border-slate-200 bg-slate-50",
-    badge: "bg-slate-200 text-slate-700",
+    wrap: "border-clever-sand bg-clever-beige",
+    badge: "bg-clever-sand text-clever-ink",
     etiqueta: "Aprobada",
   },
   bloqueada: {
-    wrap: "border-slate-200 bg-white opacity-80",
+    wrap: "border-clever-sand bg-clever-cream opacity-80",
     badge: "bg-amber-100 text-amber-800",
     etiqueta: "Bloqueada",
   },
@@ -51,11 +51,11 @@ export function CardMateria({
       <div className="flex items-start justify-between gap-3">
         <div>
           {codigo && (
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-medium uppercase tracking-wide text-clever-muted">
               {codigo}
             </p>
           )}
-          <h3 className="text-base font-semibold text-slate-900">{nombre}</h3>
+          <h3 className="text-base font-semibold text-clever-ink">{nombre}</h3>
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-medium ${estilos.badge}`}
@@ -64,13 +64,13 @@ export function CardMateria({
         </span>
       </div>
       {typeof puntaje === "number" && (
-        <p className="mt-3 text-sm text-slate-600">
+        <p className="mt-3 text-sm text-clever-muted">
           Desbloquea {puntaje} materia{puntaje === 1 ? "" : "s"} futura
           {puntaje === 1 ? "" : "s"}
         </p>
       )}
       {explicacion && (
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 text-sm leading-relaxed text-clever-muted">
           {explicacion}
         </p>
       )}

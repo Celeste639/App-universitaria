@@ -1,4 +1,4 @@
-# Copiloto de carrera
+# Clever
 
 App web (Next.js 14) para que un estudiante suba su plan de estudios, reciba un ranking de materias estratégicas, un calendario semanal y resúmenes de clases con IA.
 

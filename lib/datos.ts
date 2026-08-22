@@ -1,6 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseCorrelativas, parseMaterias } from "@/lib/plan";
-import type { Correlativa, EstadoMateria, Materia, PerfilEstudiante } from "@/lib/types";
+import { alinearCorrelativas } from "@/lib/correlativas";
+import type { CalendarioGenerado, Correlativa, EstadoMateria, EventoCalendario, Materia, PerfilEstudiante } from "@/lib/types";
+import type { Json } from "@/types/database";
+import { startOfWeek } from "date-fns";
 
 export type PlanGuardado = {
   materias: Materia[];
@@ -36,10 +39,14 @@ export async function cargarPlanYAvance(userId: string): Promise<{
         .maybeSingle(),
     ]);
 
+  const materias = planRow ? parseMaterias(planRow.materias) : [];
   const plan = planRow
     ? {
-        materias: parseMaterias(planRow.materias),
-        correlativas: parseCorrelativas(planRow.correlativas),
+        materias,
+        correlativas: alinearCorrelativas(
+          materias,
+          parseCorrelativas(planRow.correlativas),
+        ),
       }
     : null;
 
@@ -53,4 +60,59 @@ export async function cargarPlanYAvance(userId: string): Promise<{
     avance,
     perfil: perfilRow,
   };
+}
+
+function esEvento(value: unknown): value is EventoCalendario {
+  if (!value || typeof value !== "object") return false;
+  const fila = value as Record<string, unknown>;
+  return (
+    typeof fila.id === "string" &&
+    typeof fila.title === "string" &&
+    typeof fila.start === "string" &&
+    typeof fila.end === "string"
+  );
+}
+
+function parseCalendarioJson(json: Json): CalendarioGenerado | null {
+  if (Array.isArray(json)) {
+    const eventos = json.filter(esEvento);
+    return eventos.length > 0
+      ? { eventos, avisos: [], resumen: "" }
+      : null;
+  }
+
+  if (!json || typeof json !== "object") return null;
+  const fila = json as {
+    resumen?: unknown;
+    avisos?: unknown;
+    items?: unknown;
+  };
+  const eventos = Array.isArray(fila.items) ? fila.items.filter(esEvento) : [];
+  if (eventos.length === 0 && typeof fila.resumen !== "string") return null;
+
+  return {
+    resumen: typeof fila.resumen === "string" ? fila.resumen : "",
+    avisos: Array.isArray(fila.avisos)
+      ? fila.avisos.filter((item): item is string => typeof item === "string")
+      : [],
+    eventos,
+  };
+}
+
+export async function cargarCalendarioSemana(
+  userId: string,
+): Promise<CalendarioGenerado | null> {
+  const lunes = startOfWeek(new Date(), { weekStartsOn: 1 });
+  lunes.setHours(0, 0, 0, 0);
+  const semana = lunes.toISOString().slice(0, 10);
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("calendario")
+    .select("eventos")
+    .eq("user_id", userId)
+    .eq("semana", semana)
+    .maybeSingle();
+
+  if (!data) return null;
+  return parseCalendarioJson(data.eventos);
 }

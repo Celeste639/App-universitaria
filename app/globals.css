@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.rbc-calendar {
+  font-family: inherit;
+  color: #3d4a55;
+}
+
+.rbc-toolbar button {
+  border-color: #e6d9c6;
+  color: #3d4a55;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #d4eef8;
+  border-color: #a9d4ea;
+}
+
+.rbc-header {
+  background: #fbf7f1;
+  border-color: #e6d9c6;
+  padding: 8px 4px;
+}
+
+.rbc-today {
+  background-color: #d4eef8;
+}
+
+.rbc-event,
+.rbc-event.rbc-selected {
+  background-color: #6bafcd;
+  border: none;
+}
+
+.rbc-off-range-bg {
+  background: #f4ede3;
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-time-header-content,
+.rbc-timeslot-group,
+.rbc-day-slot .rbc-time-slot,
+.rbc-time-content,
+.rbc-header + .rbc-header {
+  border-color: #e6d9c6;
+}

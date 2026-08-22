@@ -4,6 +4,8 @@ import {
   inferirTipoDocumento,
   MAX_ARCHIVOS_PLAN,
   MAX_BYTES_ARCHIVO,
+  MAX_BYTES_TOTAL,
+  MB_POR_ARCHIVO,
 } from "@/lib/documentos";
 import type { TipoDocumentoPlan } from "@/lib/types";
 
@@ -129,7 +131,9 @@ export async function archivosDesdeDrop(event: DragEvent): Promise<File[]> {
 export function fusionarArchivos(
   actuales: ArchivoCargado[],
   nuevos: File[],
+  opciones?: { maxArchivos?: number },
 ): { archivos: ArchivoCargado[]; error: string | null } {
+  const maxArchivos = opciones?.maxArchivos ?? MAX_ARCHIVOS_PLAN;
   const fusionados = [...actuales];
 
   for (const file of nuevos) {
@@ -137,7 +141,7 @@ export function fusionarArchivos(
     if (file.size > MAX_BYTES_ARCHIVO) {
       return {
         archivos: actuales,
-        error: `${file.name} pesa más de 10 MB. Subí una versión más liviana.`,
+        error: `${file.name} pesa más de ${MB_POR_ARCHIVO} MB. Subí una versión más liviana.`,
       };
     }
 
@@ -157,10 +161,18 @@ export function fusionarArchivos(
     fusionados.push(archivoDesdeFile(file, path));
   }
 
-  if (fusionados.length > MAX_ARCHIVOS_PLAN) {
+  const totalBytes = fusionados.reduce((suma, item) => suma + item.file.size, 0);
+  if (totalBytes > MAX_BYTES_TOTAL) {
     return {
       archivos: actuales,
-      error: `Podés subir hasta ${MAX_ARCHIVOS_PLAN} archivos. Dejá el plan y, si tenés, correlativas y cronograma.`,
+      error: `El conjunto pesa más de ${Math.round(MAX_BYTES_TOTAL / (1024 * 1024))} MB. Subí menos archivos o versiones más livianas.`,
+    };
+  }
+
+  if (fusionados.length > maxArchivos) {
+    return {
+      archivos: actuales,
+      error: `Podés subir hasta ${maxArchivos} archivos.`,
     };
   }
 

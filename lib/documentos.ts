@@ -1,8 +1,10 @@
 import type { TipoDocumentoPlan } from "@/lib/types";
 
-export const MAX_ARCHIVOS_PLAN = 8;
-export const MAX_BYTES_ARCHIVO = 10 * 1024 * 1024;
-export const MAX_BYTES_TOTAL = 28 * 1024 * 1024;
+export const MAX_ARCHIVOS_PLAN = 12;
+export const MAX_ARCHIVOS_MATERIA = 24;
+export const MAX_BYTES_ARCHIVO = 32 * 1024 * 1024;
+export const MAX_BYTES_TOTAL = 96 * 1024 * 1024;
+export const MB_POR_ARCHIVO = Math.round(MAX_BYTES_ARCHIVO / (1024 * 1024));
 
 const EXTENSION_OK = /\.(pdf|png|jpe?g|webp|txt|csv)$/i;
 

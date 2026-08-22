@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createAnthropicClient, MODELO_CLAUDE } from "@/lib/anthropic";
-import type { Correlativa, Materia, PlanEstudioParseado, TipoDocumentoPlan } from "@/lib/types";
+import { alinearCorrelativas, resolverMateriaId } from "@/lib/correlativas";
 import { MAX_BYTES_ARCHIVO, MAX_BYTES_TOTAL } from "@/lib/documentos";
+import type { Correlativa, Materia, PlanEstudioParseado, TipoDocumentoPlan } from "@/lib/types";
 
 const HERRAMIENTA_PLAN = {
   name: "extraer_plan_estudio",
@@ -62,10 +63,17 @@ const HERRAMIENTA_PLAN = {
             requiere: {
               type: "array",
               items: { type: "string" },
-              description: "IDs de materias que hay que aprobar antes",
+              description:
+                "IDs de materias que hay que APROBAR ANTES de cursar materia_id. Mismos IDs que en materias.",
+            },
+            habilita: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "IDs que esta materia ABRE después. Usalo solo si el documento dice 'habilita/abre/correlativa de'. Si ya llenaste requiere, dejá [].",
             },
           },
-          required: ["materia_id", "requiere"],
+          required: ["materia_id", "requiere", "habilita"],
         },
       },
       cronograma: {
@@ -236,34 +244,46 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
     return { error: "El plan no trajo materias válidas. Probá con otro archivo." };
   }
 
-  const ids = new Set(materias.map((materia) => materia.id));
-  const correlativas: Correlativa[] = Array.isArray(data.correlativas)
-    ? data.correlativas.flatMap((item) => {
-        if (!item || typeof item !== "object") return [];
-        const fila = item as Record<string, unknown>;
-        const materiaId = limpiarTexto(fila.materia_id);
-        if (!materiaId || !ids.has(materiaId) || !Array.isArray(fila.requiere)) {
-          return [];
-        }
-        return [
-          {
-            materia_id: materiaId,
-            requiere: fila.requiere.filter(
-              (id): id is string => typeof id === "string" && ids.has(id),
-            ),
-          },
-        ];
-      })
-    : [];
+  const correlativasCrudas: Correlativa[] = [];
+
+  if (Array.isArray(data.correlativas)) {
+    for (const item of data.correlativas) {
+      if (!item || typeof item !== "object") continue;
+      const fila = item as Record<string, unknown>;
+      const materiaId = limpiarTexto(fila.materia_id);
+      if (!materiaId) continue;
+
+      const requiere = Array.isArray(fila.requiere)
+        ? fila.requiere.filter((id): id is string => typeof id === "string")
+        : [];
+      const habilita = Array.isArray(fila.habilita)
+        ? fila.habilita.filter((id): id is string => typeof id === "string")
+        : [];
+
+      if (requiere.length > 0) {
+        correlativasCrudas.push({ materia_id: materiaId, requiere });
+      }
+      for (const destino of habilita) {
+        correlativasCrudas.push({
+          materia_id: destino,
+          requiere: [materiaId],
+        });
+      }
+    }
+  }
+
+  const correlativas = alinearCorrelativas(materias, correlativasCrudas);
 
   if (Array.isArray(data.cronograma)) {
-    const porId = new Map(materias.map((materia) => [materia.id, materia]));
     for (const item of data.cronograma) {
       if (!item || typeof item !== "object") continue;
       const fila = item as Record<string, unknown>;
       const materiaId = limpiarTexto(fila.materia_id);
       if (!materiaId) continue;
-      const materia = porId.get(materiaId);
+      const resuelto = resolverMateriaId(materiaId, materias);
+      const materia = resuelto
+        ? materias.find((item) => item.id === resuelto)
+        : undefined;
       if (!materia) continue;
       materia.dia_semana = limpiarTexto(fila.dia_semana) ?? materia.dia_semana;
       const inicio = limpiarTexto(fila.hora_inicio);
@@ -286,7 +306,7 @@ export async function extraerPlanConClaude(
 
   const total = files.reduce((suma, file) => suma + file.size, 0);
   if (files.some((file) => file.size > MAX_BYTES_ARCHIVO)) {
-    return { ok: false, error: "Algún archivo pesa más de 10 MB. Subí una versión más liviana." };
+    return { ok: false, error: "Algún archivo pesa más de 32 MB. Subí una versión más liviana." };
   }
   if (total > MAX_BYTES_TOTAL) {
     return {
@@ -313,9 +333,19 @@ export async function extraerPlanConClaude(
       type: "text",
       text: `Extraé el plan de estudios universitario combinando TODOS los archivos.
 Tipos posibles: plan (materias), correlativas (requisitos), cronograma (qué se dicta cada semana/día).
-El plan de estudios es suficiente para avanzar: si no hay correlativas, devolvé correlativas=[].
+El plan de estudios es suficiente para avanzar: si no hay correlativas, devolvé correlativas=[] (requiere y habilita vacíos).
 Si no hay cronograma, devolvé cronograma=[] y no inventes horarios.
-Usá IDs estables: el código oficial si existe, si no un slug corto en mayúsculas.
+
+IDs: usá el código oficial (ej. MAT101) como id en TODAS las listas, el mismo string.
+
+CORRELATIVAS — no inviertas el sentido:
+- requiere = materias que hay que APROBAR ANTES de cursar materia_id.
+  Ejemplo: "Análisis II tiene correlativa Análisis I" → { materia_id: "AN2", requiere: ["AN1"], habilita: [] }
+- habilita = materias que ESTA materia abre DESPUÉS.
+  Ejemplo: "Álgebra I habilita Álgebra II" → { materia_id: "AL1", requiere: [], habilita: ["AL2"] }
+- No pongas lo mismo en requiere y habilita.
+- El ranking de la app cuenta cuántas materias FUTURAS dependen de cada una: si invertís requiere/habilita, el análisis queda mal.
+
 Unificá materias repetidas. Completá correlativas y días/horarios cuando esos documentos existan.
 Marcá legible=false solo si no se puede leer el plan principal.`,
     });

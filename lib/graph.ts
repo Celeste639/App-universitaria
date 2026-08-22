@@ -1,4 +1,5 @@
 import type { Correlativa, Materia, RankingMateria } from "@/lib/types";
+import { alinearCorrelativas } from "@/lib/correlativas";
 
 type GrafoHabilitacion = Map<string, string[]>;
 
@@ -50,7 +51,8 @@ export function rankingEstrategico(
   correlativas: Correlativa[],
   idsNoCursadas: Set<string>,
 ): RankingMateria[] {
-  const grafo = construirGrafoHabilitacion(correlativas);
+  const correlativasAlineadas = alinearCorrelativas(materias, correlativas);
+  const grafo = construirGrafoHabilitacion(correlativasAlineadas);
   const porId = new Map(materias.map((materia) => [materia.id, materia]));
 
   const ranking = materias

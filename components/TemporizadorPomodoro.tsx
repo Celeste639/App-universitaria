@@ -46,16 +46,16 @@ export function TemporizadorPomodoro() {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">
+    <section className="rounded-xl border border-clever-sand bg-clever-cream p-5 shadow-sm">
+      <p className="text-sm font-medium text-clever-muted">
         {enDescanso ? "Descanso" : "Foco"} · Pomodoro
       </p>
-      <p className="mt-2 font-mono text-4xl font-semibold tracking-tight text-slate-900">
+      <p className="mt-2 font-mono text-4xl font-semibold tracking-tight text-clever-ink">
         {formatTiempo(segundos)}
       </p>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-clever-sand">
         <div
-          className="h-full rounded-full bg-indigo-600 transition-[width]"
+          className="h-full rounded-full bg-clever-skyDeep transition-[width]"
           style={{ width: `${progreso * 100}%` }}
         />
       </div>
@@ -63,14 +63,14 @@ export function TemporizadorPomodoro() {
         <button
           type="button"
           onClick={() => setCorriendo((valor) => !valor)}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="rounded-lg bg-clever-skyDeep px-4 py-2 text-sm font-medium text-white hover:bg-[#4d92b3]"
         >
           {corriendo ? "Pausar" : "Empezar"}
         </button>
         <button
           type="button"
           onClick={reiniciar}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="rounded-lg border border-clever-sand px-4 py-2 text-sm font-medium text-clever-ink hover:bg-clever-sky"
         >
           Reiniciar
         </button>

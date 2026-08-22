@@ -3,40 +3,8 @@
 import { createAnthropicClient, MODELO_CLAUDE } from "@/lib/anthropic";
 import { cargarPerfilEstudiante } from "@/lib/perfil";
 import { perfilParaPrompt, SYSTEM_EXPLICAR_RANKING } from "@/lib/prompts";
-import { explicarRankingLocal } from "@/lib/graph";
-import type { PerfilEstudiante, RankingMateria, ResultadoAccion } from "@/lib/types";
-
-function fallbackPersonalizado(
-  ranking: RankingMateria[],
-  perfil: PerfilEstudiante | null,
-): RankingMateria[] {
-  return ranking.map((item) => {
-    const base = explicarRankingLocal(item);
-    if (!perfil) {
-      return { ...item, explicacion: item.explicacion ?? base };
-    }
-
-    const extras: string[] = [];
-    if (perfil.horario_rotativo) {
-      extras.push(
-        "Como tu horario es rotativo, revisá disponibilidad con el profesor; puede que necesites presentar constancia laboral.",
-      );
-    } else if ((perfil.horas_trabajo ?? 0) >= 20) {
-      extras.push(
-        `Con ${perfil.horas_trabajo} h de trabajo, conviene no saturar la semana y atacar primero lo que más desbloquea.`,
-      );
-    } else if (perfil.otras_actividades?.trim()) {
-      extras.push(
-        `Tené en cuenta ${perfil.otras_actividades.trim()} al elegir comisión y bloques de estudio.`,
-      );
-    }
-
-    return {
-      ...item,
-      explicacion: extras.length > 0 ? `${base} ${extras.join(" ")}` : base,
-    };
-  });
-}
+import { explicarRankingConPerfil } from "@/lib/explicaciones";
+import type { RankingMateria, ResultadoAccion } from "@/lib/types";
 
 export async function explicarRanking(
   ranking: RankingMateria[],
@@ -105,7 +73,7 @@ ${JSON.stringify(
 
     const herramienta = respuesta.content.find((bloque) => bloque.type === "tool_use");
     if (!herramienta || herramienta.type !== "tool_use") {
-      return { ok: true, data: fallbackPersonalizado(ranking, perfil) };
+      return { ok: true, data: explicarRankingConPerfil(ranking, perfil) };
     }
 
     const input = herramienta.input as {
@@ -124,7 +92,7 @@ ${JSON.stringify(
       data: ranking.map((item) => {
         const generado = porId.get(item.materia.id);
         if (!generado?.explicacion) {
-          return fallbackPersonalizado([item], perfil)[0];
+          return explicarRankingConPerfil([item], perfil)[0];
         }
 
         const alerta =
@@ -140,6 +108,6 @@ ${JSON.stringify(
       }),
     };
   } catch {
-    return { ok: true, data: fallbackPersonalizado(ranking, perfil) };
+    return { ok: true, data: explicarRankingConPerfil(ranking, perfil) };
   }
 }

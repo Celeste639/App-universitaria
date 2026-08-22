@@ -9,9 +9,9 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Copiloto de carrera",
+  title: "Clever",
   description:
-    "Subí tu plan de estudios y recibí un ranking de materias, un calendario de estudio y resúmenes de clases con IA.",
+    "Clever te lee el plan de estudios, prioriza materias y arma un calendario de estudio con IA.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} min-h-screen bg-slate-50 font-sans text-slate-900 antialiased`}
+        className={`${geistSans.variable} min-h-screen bg-clever-beige font-sans text-clever-ink antialiased`}
       >
         {children}
       </body>

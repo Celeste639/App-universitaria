@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { UploadPlan } from "@/components/UploadPlan";
 import { completarOnboarding } from "@/app/actions/plan";
+import { notificarAnalisisListo, pedirPermisoNotificaciones } from "@/lib/notificar";
 import type { ArchivoCargado } from "@/lib/recoger-archivos";
 
 export function OnboardingForm() {
@@ -12,6 +13,7 @@ export function OnboardingForm() {
   const [archivos, setArchivos] = useState<ArchivoCargado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [listo, setListo] = useState(false);
 
   async function onSubmit(formData: FormData) {
     setError(null);
@@ -24,6 +26,7 @@ export function OnboardingForm() {
     }
 
     setEnviando(true);
+    await pedirPermisoNotificaciones();
 
     for (const item of archivos) {
       formData.append("archivos", item.file);
@@ -37,7 +40,9 @@ export function OnboardingForm() {
         return;
       }
 
-      router.push("/dashboard");
+      setListo(true);
+      notificarAnalisisListo();
+      router.push("/dashboard?analisis=ok");
       router.refresh();
     } catch {
       setError("Ocurrió un error inesperado. Probá de nuevo en unos segundos.");
@@ -56,9 +61,10 @@ export function OnboardingForm() {
     >
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Documentos de la carrera</h2>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-clever-muted">
           El plan de estudios alcanza para avanzar. Si tenés correlativas o el
-          cronograma de dictado, sumalos — o subí toda la carpeta.
+          cronograma de dictado, sumalos — o subí toda la carpeta. Los PDF largos
+          (20+ páginas) entran bien.
         </p>
         <UploadPlan
           multiple
@@ -70,22 +76,22 @@ export function OnboardingForm() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-clever-ink">
           Horas de trabajo por semana
           <input
             name="horas_trabajo"
             type="number"
             min={0}
             max={80}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
           />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-clever-ink">
           Tipo de trabajo
           <select
             name="tipo_trabajo"
             defaultValue=""
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
           >
             <option value="" disabled>
               Elegí una opción
@@ -96,30 +102,30 @@ export function OnboardingForm() {
             <option value="rotativo">Turnos / rotativo</option>
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-clever-ink sm:col-span-2">
           <input
             name="horario_rotativo"
             type="checkbox"
             value="true"
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-4 w-4 rounded border-clever-sand"
           />
           Tengo horario rotativo
         </label>
-        <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+        <label className="block text-sm font-medium text-clever-ink sm:col-span-2">
           Otras actividades (entrenamiento, cuidados, etc.)
           <textarea
             name="otras_actividades"
             rows={3}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
             placeholder="Ej. entreno de 19 a 21, lunes a jueves"
           />
         </label>
-        <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+        <label className="block text-sm font-medium text-clever-ink sm:col-span-2">
           Método de estudio preferido
           <select
             name="metodo_estudio"
             defaultValue="pomodoro"
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
           >
             <option value="pomodoro">Pomodoro</option>
             <option value="bloques_largos">Bloques largos</option>
@@ -131,13 +137,18 @@ export function OnboardingForm() {
       {error && (
         <ErrorMessage title="No pudimos procesar el onboarding" message={error} />
       )}
+      {listo && (
+        <p className="rounded-xl border border-clever-skyMid bg-clever-sky px-4 py-3 text-sm text-clever-ink" role="status">
+          Clever ya analizó tu plan. Te avisamos y te llevamos al dashboard.
+        </p>
+      )}
 
       <button
         type="submit"
-        disabled={enviando}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300 sm:w-auto"
+        disabled={enviando || listo}
+        className="w-full rounded-lg bg-clever-skyDeep px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4d92b3] disabled:cursor-not-allowed disabled:bg-clever-skyMid sm:w-auto"
       >
-        {enviando ? "Leyendo los documentos con IA…" : "Guardar y continuar"}
+        {enviando ? "Leyendo los documentos con IA…" : listo ? "Análisis listo" : "Guardar y continuar"}
       </button>
     </form>
   );

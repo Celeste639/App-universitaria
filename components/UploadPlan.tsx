@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { etiquetaTipoDocumento } from "@/lib/documentos";
+import {
+  etiquetaTipoDocumento,
+  MAX_ARCHIVOS_MATERIA,
+  MAX_ARCHIVOS_PLAN,
+  MB_POR_ARCHIVO,
+} from "@/lib/documentos";
 import {
   archivosDesdeDrop,
   fusionarArchivos,
@@ -19,6 +24,7 @@ type UploadPlanProps = {
   allowFolders?: boolean;
   disabled?: boolean;
   error?: string | null;
+  modo?: "plan" | "materia";
 };
 
 export function UploadPlan({
@@ -29,12 +35,16 @@ export function UploadPlan({
   allowFolders = false,
   disabled = false,
   error = null,
+  modo = "plan",
 }: UploadPlanProps) {
   const inputArchivosRef = useRef<HTMLInputElement>(null);
   const inputCarpetaRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const esMateria = modo === "materia";
+  const maxArchivos = esMateria ? MAX_ARCHIVOS_MATERIA : MAX_ARCHIVOS_PLAN;
+  const mostrarTipo = multiple && !esMateria;
 
   const agregar = useCallback(
     (nuevos: File[]) => {
@@ -52,13 +62,13 @@ export function UploadPlan({
         return;
       }
 
-      const resultado = fusionarArchivos(files, nuevos);
+      const resultado = fusionarArchivos(files, nuevos, { maxArchivos });
       setLocalError(resultado.error);
       if (!resultado.error) {
         onFilesChange?.(resultado.archivos);
       }
     },
-    [files, multiple, onFileSelected, onFilesChange],
+    [files, maxArchivos, multiple, onFileSelected, onFilesChange],
   );
 
   useEffect(() => {
@@ -84,10 +94,10 @@ export function UploadPlan({
         }}
         className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center transition ${
           disabled
-            ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400"
+            ? "cursor-not-allowed border-clever-sand bg-clever-beige text-clever-muted"
             : isDragging
-              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-              : "border-slate-300 bg-white text-slate-600 hover:border-indigo-400 hover:bg-indigo-50/40"
+              ? "border-clever-skyDeep bg-clever-sky text-clever-ink"
+              : "border-clever-sand bg-clever-cream text-clever-muted hover:border-clever-skyMid hover:bg-clever-sky/50"
         }`}
       >
         <input
@@ -122,10 +132,12 @@ export function UploadPlan({
               ? fileName
               : "Arrastrá tu archivo o hacé clic para elegir"}
         </span>
-        <span className="mt-1 max-w-md text-xs text-slate-500">
-          {multiple
-            ? "Plan de estudios (obligatorio). Correlativas y cronograma, si los tenés. PDF, imagen o txt · hasta 8 archivos"
-            : "PDF o imagen · máximo 10 MB"}
+        <span className="mt-1 max-w-md text-xs text-clever-muted">
+          {esMateria
+            ? `Varios PDF de 20+ páginas están bien. PDF, imagen o txt · hasta ${maxArchivos} archivos · ${MB_POR_ARCHIVO} MB cada uno`
+            : multiple
+              ? `Plan de estudios (obligatorio). Correlativas y cronograma, si los tenés. PDF, imagen o txt · hasta ${maxArchivos} archivos · ${MB_POR_ARCHIVO} MB cada uno`
+              : `PDF o imagen · máximo ${MB_POR_ARCHIVO} MB`}
         </span>
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -133,7 +145,7 @@ export function UploadPlan({
             type="button"
             disabled={disabled}
             onClick={() => inputArchivosRef.current?.click()}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-clever-sand bg-clever-cream px-3 py-1.5 text-sm font-medium text-clever-ink hover:bg-clever-sky disabled:opacity-50"
           >
             {multiple ? "Elegir archivos" : "Elegir archivo"}
           </button>
@@ -142,7 +154,7 @@ export function UploadPlan({
               type="button"
               disabled={disabled}
               onClick={() => inputCarpetaRef.current?.click()}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-clever-sand bg-clever-cream px-3 py-1.5 text-sm font-medium text-clever-ink hover:bg-clever-sky disabled:opacity-50"
             >
               Elegir carpeta
             </button>
@@ -155,46 +167,48 @@ export function UploadPlan({
           {files.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 sm:flex-row sm:items-center"
+              className="flex flex-col gap-2 rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 sm:flex-row sm:items-center"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800">
+                <p className="truncate text-sm font-medium text-clever-ink">
                   {item.file.name}
                 </p>
                 {item.relativePath !== item.file.name && (
-                  <p className="truncate text-xs text-slate-500">{item.relativePath}</p>
+                  <p className="truncate text-xs text-clever-muted">{item.relativePath}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <select
-                  value={item.tipo}
-                  disabled={disabled}
-                  onChange={(event) => {
-                    const tipo = event.target.value as TipoDocumentoPlan;
-                    onFilesChange?.(
-                      files.map((archivo) =>
-                        archivo.id === item.id ? { ...archivo, tipo } : archivo,
-                      ),
-                    );
-                  }}
-                  className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
-                  aria-label={`Tipo de ${item.file.name}`}
-                >
-                  <option value="plan">{etiquetaTipoDocumento("plan")}</option>
-                  <option value="correlativas">
-                    {etiquetaTipoDocumento("correlativas")}
-                  </option>
-                  <option value="cronograma">
-                    {etiquetaTipoDocumento("cronograma")}
-                  </option>
-                </select>
+                {mostrarTipo && (
+                  <select
+                    value={item.tipo}
+                    disabled={disabled}
+                    onChange={(event) => {
+                      const tipo = event.target.value as TipoDocumentoPlan;
+                      onFilesChange?.(
+                        files.map((archivo) =>
+                          archivo.id === item.id ? { ...archivo, tipo } : archivo,
+                        ),
+                      );
+                    }}
+                    className="rounded-md border border-clever-sand bg-white px-2 py-1 text-xs text-clever-ink"
+                    aria-label={`Tipo de ${item.file.name}`}
+                  >
+                    <option value="plan">{etiquetaTipoDocumento("plan")}</option>
+                    <option value="correlativas">
+                      {etiquetaTipoDocumento("correlativas")}
+                    </option>
+                    <option value="cronograma">
+                      {etiquetaTipoDocumento("cronograma")}
+                    </option>
+                  </select>
+                )}
                 <button
                   type="button"
                   disabled={disabled}
                   onClick={() =>
                     onFilesChange?.(files.filter((archivo) => archivo.id !== item.id))
                   }
-                  className="text-xs font-medium text-slate-500 hover:text-red-600"
+                  className="text-xs font-medium text-clever-muted hover:text-red-600"
                 >
                   Quitar
                 </button>
