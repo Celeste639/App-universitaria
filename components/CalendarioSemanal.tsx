@@ -37,6 +37,7 @@ const MENSAJES = {
 type CalendarioSemanalProps = {
   eventos?: EventoCalendario[];
   avisos?: string[];
+  resumen?: string;
 };
 
 type EventoVista = RBCEvent & { tipo?: string; aviso?: string };
@@ -44,6 +45,7 @@ type EventoVista = RBCEvent & { tipo?: string; aviso?: string };
 export function CalendarioSemanal({
   eventos = [],
   avisos = [],
+  resumen,
 }: CalendarioSemanalProps) {
   const eventosVista = useMemo<EventoVista[]>(
     () =>
@@ -59,6 +61,11 @@ export function CalendarioSemanal({
 
   return (
     <div className="space-y-4">
+      {resumen && (
+        <p className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-700">
+          {resumen}
+        </p>
+      )}
       {avisos.length > 0 && (
         <div className="space-y-2">
           {avisos.map((aviso) => (

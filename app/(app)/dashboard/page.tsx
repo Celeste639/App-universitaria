@@ -1,16 +1,19 @@
 import Link from "next/link";
+import { generarCalendarioSemanal } from "@/app/actions/calendario";
+import { explicarRanking } from "@/app/actions/ranking";
 import { CalendarioSemanal } from "@/components/CalendarioSemanal";
 import { CardMateria } from "@/components/CardMateria";
 import { requireAuthUser } from "@/lib/auth";
 import { cargarPlanYAvance } from "@/lib/datos";
-import { explicarRankingLocal, rankingEstrategico } from "@/lib/graph";
+import { rankingEstrategico } from "@/lib/graph";
 import { estadoVisualMateria } from "@/lib/plan";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function DashboardPage() {
   const user = await requireAuthUser();
-  const { plan, avance, perfil } = await cargarPlanYAvance(user.id);
+  const { plan, avance } = await cargarPlanYAvance(user.id);
 
   if (!plan || plan.materias.length === 0) {
     return (
@@ -35,28 +38,30 @@ export default async function DashboardPage() {
       .map((materia) => materia.id),
   );
 
-  const ranking = rankingEstrategico(
+  const rankingBase = rankingEstrategico(
     plan.materias,
     plan.correlativas,
     noCursadas,
-  ).map((item) => ({
-    ...item,
-    explicacion: explicarRankingLocal(item),
-  }));
+  );
 
-  const avisos = perfil?.horario_rotativo
-    ? [
-        "Detectamos horario rotativo: consultá disponibilidad con el profesor y pedí constancia laboral si corresponde.",
-      ]
-    : [];
+  const [rankingResultado, calendarioResultado] = await Promise.all([
+    explicarRanking(rankingBase),
+    generarCalendarioSemanal(rankingBase),
+  ]);
+
+  const ranking = rankingResultado.ok ? rankingResultado.data : rankingBase;
+  const calendario = calendarioResultado.ok
+    ? calendarioResultado.data
+    : { eventos: [], avisos: [], resumen: "" };
 
   return (
     <main className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Ranking según cuántas materias futuras desbloquea cada una. El
-          calendario semanal con IA lo conectamos en el próximo paso.
+          El orden sale de las correlativas. La explicación y el calendario los
+          arma la IA con tu perfil (trabajo, horario rotativo y otras
+          actividades).
         </p>
       </div>
 
@@ -93,7 +98,11 @@ export default async function DashboardPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Calendario semanal</h2>
-        <CalendarioSemanal avisos={avisos} />
+        <CalendarioSemanal
+          eventos={calendario.eventos}
+          avisos={calendario.avisos}
+          resumen={calendario.resumen}
+        />
       </section>
     </main>
   );
