@@ -28,6 +28,9 @@ export function parseMaterias(json: Json): Materia[] {
           typeof item.cuatrimestre === "number" ? item.cuatrimestre : undefined,
         carga_horaria:
           typeof item.carga_horaria === "number" ? item.carga_horaria : undefined,
+        dia_semana: typeof item.dia_semana === "string" ? item.dia_semana : undefined,
+        horario: typeof item.horario === "string" ? item.horario : undefined,
+        comision: typeof item.comision === "string" ? item.comision : undefined,
       },
     ];
   });

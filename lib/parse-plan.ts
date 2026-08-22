@@ -1,20 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createAnthropicClient, MODELO_CLAUDE } from "@/lib/anthropic";
-import type { Correlativa, Materia, PlanEstudioParseado } from "@/lib/types";
-
-const MAX_BYTES = 10 * 1024 * 1024;
+import type { Correlativa, Materia, PlanEstudioParseado, TipoDocumentoPlan } from "@/lib/types";
+import { MAX_BYTES_ARCHIVO, MAX_BYTES_TOTAL } from "@/lib/documentos";
 
 const HERRAMIENTA_PLAN = {
   name: "extraer_plan_estudio",
   description:
-    "Devuelve las materias y correlativas extraídas de un plan de estudios universitario.",
+    "Devuelve las materias, correlativas y cronograma extraídos de uno o más documentos universitarios.",
   input_schema: {
     type: "object",
     additionalProperties: false,
     properties: {
       legible: {
         type: "boolean",
-        description: "false si el archivo no se puede leer o no es un plan de estudios",
+        description:
+          "false solo si NO se puede leer el plan de estudios. Si faltan correlativas o cronograma pero el plan se entiende, legible=true.",
       },
       motivo_error: {
         type: ["string", "null"],
@@ -35,8 +35,21 @@ const HERRAMIENTA_PLAN = {
             anio: { type: ["integer", "null"] },
             cuatrimestre: { type: ["integer", "null"] },
             carga_horaria: { type: ["integer", "null"] },
+            dia_semana: { type: ["string", "null"] },
+            horario: { type: ["string", "null"] },
+            comision: { type: ["string", "null"] },
           },
-          required: ["id", "nombre", "codigo", "anio", "cuatrimestre", "carga_horaria"],
+          required: [
+            "id",
+            "nombre",
+            "codigo",
+            "anio",
+            "cuatrimestre",
+            "carga_horaria",
+            "dia_semana",
+            "horario",
+            "comision",
+          ],
         },
       },
       correlativas: {
@@ -55,18 +68,37 @@ const HERRAMIENTA_PLAN = {
           required: ["materia_id", "requiere"],
         },
       },
+      cronograma: {
+        type: "array",
+        description:
+          "Horarios de dictado si hay cronograma. Vacío si no hay ese archivo o no se ve.",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            materia_id: { type: "string" },
+            dia_semana: { type: ["string", "null"] },
+            hora_inicio: { type: ["string", "null"] },
+            hora_fin: { type: ["string", "null"] },
+            comision: { type: ["string", "null"] },
+          },
+          required: ["materia_id", "dia_semana", "hora_inicio", "hora_fin", "comision"],
+        },
+      },
     },
-    required: ["legible", "motivo_error", "materias", "correlativas"],
+    required: ["legible", "motivo_error", "materias", "correlativas", "cronograma"],
   },
 } satisfies Anthropic.Tool;
 
 type ImagenSoportada = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
 
-type ArchivoPlan = {
+export type ArchivoPlan = {
   name: string;
   type: string;
   size: number;
   bytes: Buffer;
+  tipo?: TipoDocumentoPlan;
+  relativePath?: string;
 };
 
 function tipoImagen(file: Pick<ArchivoPlan, "name" | "type">): ImagenSoportada | null {
@@ -90,19 +122,41 @@ function esPdf(file: Pick<ArchivoPlan, "name" | "type">): boolean {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 }
 
-function bloqueDeArchivo(
-  file: Pick<ArchivoPlan, "name" | "type">,
-  base64: string,
-): Anthropic.ContentBlockParam {
-  if (esPdf(file)) {
-    return {
-      type: "document",
-      source: {
-        type: "base64",
-        media_type: "application/pdf",
-        data: base64,
+function esTextoPlano(file: Pick<ArchivoPlan, "name" | "type">): boolean {
+  return (
+    file.type === "text/plain" ||
+    file.type === "text/csv" ||
+    /\.(txt|csv)$/i.test(file.name)
+  );
+}
+
+function bloquesDeArchivo(file: ArchivoPlan): Anthropic.ContentBlockParam[] {
+  const etiqueta = `Archivo "${file.relativePath ?? file.name}" (tipo: ${file.tipo ?? "plan"}).`;
+
+  if (esTextoPlano(file)) {
+    return [
+      {
+        type: "text",
+        text: `${etiqueta}\n${file.bytes.toString("utf8").slice(0, 20000)}`,
       },
-    };
+    ];
+  }
+
+  if (esPdf(file)) {
+    return [
+      {
+        type: "text",
+        text: etiqueta,
+      },
+      {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: "application/pdf",
+          data: file.bytes.toString("base64"),
+        },
+      },
+    ];
   }
 
   const mediaType = tipoImagen(file);
@@ -110,14 +164,20 @@ function bloqueDeArchivo(
     throw new Error("FORMATO_INVALIDO");
   }
 
-  return {
-    type: "image",
-    source: {
-      type: "base64",
-      media_type: mediaType,
-      data: base64,
+  return [
+    {
+      type: "text",
+      text: etiqueta,
     },
-  };
+    {
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: mediaType,
+        data: file.bytes.toString("base64"),
+      },
+    },
+  ];
 }
 
 function limpiarTexto(valor: unknown): string | undefined {
@@ -165,6 +225,9 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
         anio: limpiarEntero(fila.anio),
         cuatrimestre: limpiarEntero(fila.cuatrimestre),
         carga_horaria: limpiarEntero(fila.carga_horaria),
+        dia_semana: limpiarTexto(fila.dia_semana),
+        horario: limpiarTexto(fila.horario),
+        comision: limpiarTexto(fila.comision),
       },
     ];
   });
@@ -193,47 +256,77 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
       })
     : [];
 
+  if (Array.isArray(data.cronograma)) {
+    const porId = new Map(materias.map((materia) => [materia.id, materia]));
+    for (const item of data.cronograma) {
+      if (!item || typeof item !== "object") continue;
+      const fila = item as Record<string, unknown>;
+      const materiaId = limpiarTexto(fila.materia_id);
+      if (!materiaId) continue;
+      const materia = porId.get(materiaId);
+      if (!materia) continue;
+      materia.dia_semana = limpiarTexto(fila.dia_semana) ?? materia.dia_semana;
+      const inicio = limpiarTexto(fila.hora_inicio);
+      const fin = limpiarTexto(fila.hora_fin);
+      if (inicio && fin) materia.horario = `${inicio}-${fin}`;
+      else if (inicio) materia.horario = inicio;
+      materia.comision = limpiarTexto(fila.comision) ?? materia.comision;
+    }
+  }
+
   return { materias, correlativas };
 }
 
 export async function extraerPlanConClaude(
-  file: ArchivoPlan,
+  files: ArchivoPlan[],
 ): Promise<{ ok: true; data: PlanEstudioParseado } | { ok: false; error: string }> {
-  if (file.size > MAX_BYTES) {
-    return { ok: false, error: "El archivo pesa más de 10 MB. Subí una versión más liviana." };
+  if (files.length === 0) {
+    return { ok: false, error: "Subí al menos el plan de estudios (PDF o imagen)." };
   }
 
-  if (!esPdf(file) && !tipoImagen(file)) {
+  const total = files.reduce((suma, file) => suma + file.size, 0);
+  if (files.some((file) => file.size > MAX_BYTES_ARCHIVO)) {
+    return { ok: false, error: "Algún archivo pesa más de 10 MB. Subí una versión más liviana." };
+  }
+  if (total > MAX_BYTES_TOTAL) {
     return {
       ok: false,
-      error: "Subí un PDF o una imagen JPG, PNG o WEBP. HEIC no está soportado todavía.",
+      error: "El conjunto de archivos pesa demasiado. Subí menos archivos o versiones más livianas.",
     };
   }
 
-  const base64 = file.bytes.toString("base64");
+  const invalidos = files.filter(
+    (file) => !esPdf(file) && !tipoImagen(file) && !esTextoPlano(file),
+  );
+  if (invalidos.length > 0) {
+    return {
+      ok: false,
+      error: "Usá PDF, JPG, PNG, WEBP o TXT. HEIC no está soportado todavía.",
+    };
+  }
 
   try {
+    const contenido: Anthropic.ContentBlockParam[] = files.flatMap((file) =>
+      bloquesDeArchivo(file),
+    );
+    contenido.push({
+      type: "text",
+      text: `Extraé el plan de estudios universitario combinando TODOS los archivos.
+Tipos posibles: plan (materias), correlativas (requisitos), cronograma (qué se dicta cada semana/día).
+El plan de estudios es suficiente para avanzar: si no hay correlativas, devolvé correlativas=[].
+Si no hay cronograma, devolvé cronograma=[] y no inventes horarios.
+Usá IDs estables: el código oficial si existe, si no un slug corto en mayúsculas.
+Unificá materias repetidas. Completá correlativas y días/horarios cuando esos documentos existan.
+Marcá legible=false solo si no se puede leer el plan principal.`,
+    });
+
     const anthropic = createAnthropicClient();
     const respuesta = await anthropic.messages.create({
       model: MODELO_CLAUDE,
       max_tokens: 8000,
       tools: [HERRAMIENTA_PLAN],
       tool_choice: { type: "tool", name: "extraer_plan_estudio" },
-      messages: [
-        {
-          role: "user",
-          content: [
-            bloqueDeArchivo(file, base64),
-            {
-              type: "text",
-              text: `Extraé el plan de estudios universitario de este archivo.
-Devolvé todas las materias visibles y las correlativas (qué materias hay que aprobar antes).
-Usá IDs estables: el código oficial si existe, si no un slug corto en mayúsculas.
-Si el archivo está borroso, cortado o no es un plan de estudios, marcá legible=false.`,
-            },
-          ],
-        },
-      ],
+      messages: [{ role: "user", content: contenido }],
     });
 
     const herramienta = respuesta.content.find((bloque) => bloque.type === "tool_use");
@@ -255,7 +348,7 @@ Si el archivo está borroso, cortado o no es un plan de estudios, marcá legible
     if (texto === "FORMATO_INVALIDO") {
       return {
         ok: false,
-        error: "Subí un PDF o una imagen JPG, PNG o WEBP.",
+        error: "Subí un PDF, una imagen JPG/PNG/WEBP o un TXT.",
       };
     }
     if (texto.toLowerCase().includes("api key") || texto.includes("ANTHROPIC")) {
@@ -264,7 +357,7 @@ Si el archivo está borroso, cortado o no es un plan de estudios, marcá legible
     return {
       ok: false,
       error:
-        "Claude no pudo leer el archivo ahora. Probá de nuevo o subí el plan como PDF.",
+        "Claude no pudo leer los archivos ahora. Probá de nuevo o subí el plan como PDF.",
     };
   }
 }

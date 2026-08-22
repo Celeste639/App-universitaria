@@ -6,6 +6,8 @@ export type EstadoVisualMateria =
   | "aprobada"
   | "bloqueada";
 
+export type TipoDocumentoPlan = "plan" | "correlativas" | "cronograma";
+
 export type Materia = {
   id: string;
   nombre: string;
@@ -13,6 +15,9 @@ export type Materia = {
   anio?: number;
   cuatrimestre?: number;
   carga_horaria?: number;
+  dia_semana?: string;
+  horario?: string;
+  comision?: string;
 };
 
 export type Correlativa = {

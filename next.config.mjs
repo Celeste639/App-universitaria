@@ -3,7 +3,7 @@ const nextConfig = {
   transpilePackages: ["react-big-calendar"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "12mb",
+      bodySizeLimit: "32mb",
     },
   },
 };

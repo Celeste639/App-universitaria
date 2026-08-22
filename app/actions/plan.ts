@@ -3,8 +3,9 @@
 import { extraerPlanConClaude } from "@/lib/parse-plan";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/auth";
+import { inferirTipoDocumento } from "@/lib/documentos";
 import type { Json } from "@/types/database";
-import type { PlanEstudioParseado, ResultadoAccion } from "@/lib/types";
+import type { PlanEstudioParseado, ResultadoAccion, TipoDocumentoPlan } from "@/lib/types";
 
 function textoOpcional(valor: FormDataEntryValue | null): string | null {
   if (typeof valor !== "string") return null;
@@ -34,6 +35,10 @@ function mensajeErrorSupabase(
   return fallback;
 }
 
+function esTipoDocumento(valor: FormDataEntryValue | undefined): valor is TipoDocumentoPlan {
+  return valor === "plan" || valor === "correlativas" || valor === "cronograma";
+}
+
 export async function completarOnboarding(
   formData: FormData,
 ): Promise<ResultadoAccion<PlanEstudioParseado>> {
@@ -42,28 +47,51 @@ export async function completarOnboarding(
     return { ok: false, error: "Tenés que iniciar sesión para guardar el plan." };
   }
   const supabase = createSupabaseServerClient();
-  const archivo = formData.get("plan");
+  const archivos = formData
+    .getAll("archivos")
+    .filter((item): item is File => item instanceof File && item.size > 0);
+  const tipos = formData.getAll("tipos");
 
-  if (!(archivo instanceof File) || archivo.size === 0) {
-    return { ok: false, error: "Subí el PDF o la imagen de tu plan de estudios." };
+  if (archivos.length === 0) {
+    return {
+      ok: false,
+      error: "Subí al menos el plan de estudios. Correlativas y cronograma son opcionales.",
+    };
   }
 
-  const bytes = Buffer.from(await archivo.arrayBuffer());
-  const parseado = await extraerPlanConClaude({
-    name: archivo.name,
-    type: archivo.type,
-    size: archivo.size,
-    bytes,
-  });
+  const payload = await Promise.all(
+    archivos.map(async (archivo, index) => ({
+      name: archivo.name,
+      type: archivo.type,
+      size: archivo.size,
+      bytes: Buffer.from(await archivo.arrayBuffer()),
+      tipo: esTipoDocumento(tipos[index])
+        ? tipos[index]
+        : inferirTipoDocumento(archivo.name),
+      relativePath: archivo.name,
+    })),
+  );
+
+  const parseado = await extraerPlanConClaude(payload);
   if (!parseado.ok) {
     return parseado;
   }
 
-  const rutaStorage = `${user.id}/${Date.now()}-${nombreArchivoSeguro(archivo.name)}`;
-  await supabase.storage.from("planes-estudio").upload(rutaStorage, bytes, {
-    contentType: archivo.type || "application/octet-stream",
-    upsert: true,
-  });
+  const lote = Date.now();
+  await Promise.all(
+    payload.map((archivo) =>
+      supabase.storage
+        .from("planes-estudio")
+        .upload(
+          `${user.id}/${lote}-${archivo.tipo}-${nombreArchivoSeguro(archivo.name)}`,
+          archivo.bytes,
+          {
+            contentType: archivo.type || "application/octet-stream",
+            upsert: true,
+          },
+        ),
+    ),
+  );
 
   const { error: errorPlan } = await supabase.from("planes_estudio").insert({
     user_id: user.id,

@@ -5,19 +5,29 @@ import { useRouter } from "next/navigation";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { UploadPlan } from "@/components/UploadPlan";
 import { completarOnboarding } from "@/app/actions/plan";
+import type { ArchivoCargado } from "@/lib/recoger-archivos";
 
 export function OnboardingForm() {
   const router = useRouter();
-  const [archivo, setArchivo] = useState<File | null>(null);
+  const [archivos, setArchivos] = useState<ArchivoCargado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   async function onSubmit(formData: FormData) {
     setError(null);
+
+    if (archivos.length === 0) {
+      setError(
+        "Subí al menos el plan de estudios. Si no tenés correlativas o cronograma, igual podés continuar.",
+      );
+      return;
+    }
+
     setEnviando(true);
 
-    if (archivo) {
-      formData.set("plan", archivo);
+    for (const item of archivos) {
+      formData.append("archivos", item.file);
+      formData.append("tipos", item.tipo);
     }
 
     try {
@@ -45,8 +55,18 @@ export function OnboardingForm() {
       className="mt-8 space-y-8"
     >
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">Plan de estudios</h2>
-        <UploadPlan onFileSelected={setArchivo} disabled={enviando} />
+        <h2 className="text-lg font-medium">Documentos de la carrera</h2>
+        <p className="text-sm text-slate-600">
+          El plan de estudios alcanza para avanzar. Si tenés correlativas o el
+          cronograma de dictado, sumalos — o subí toda la carpeta.
+        </p>
+        <UploadPlan
+          multiple
+          allowFolders
+          files={archivos}
+          onFilesChange={setArchivos}
+          disabled={enviando}
+        />
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
@@ -117,7 +137,7 @@ export function OnboardingForm() {
         disabled={enviando}
         className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300 sm:w-auto"
       >
-        {enviando ? "Leyendo el plan con IA…" : "Guardar y continuar"}
+        {enviando ? "Leyendo los documentos con IA…" : "Guardar y continuar"}
       </button>
     </form>
   );

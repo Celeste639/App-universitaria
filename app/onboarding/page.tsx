@@ -13,8 +13,9 @@ export default async function OnboardingPage() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold tracking-tight">Onboarding</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Cargá tu plan de estudios y contanos cómo está armada tu semana. Claude
-          va a leer el PDF o la imagen y extraer materias y correlativas.
+          Cargá el plan de estudios. Si tenés correlativas o el cronograma semanal,
+          sumalos — o subí una carpeta completa. Con el plan solo también podés
+          seguir.
         </p>
         <OnboardingForm />
       </main>

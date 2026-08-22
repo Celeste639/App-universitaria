@@ -33,6 +33,7 @@ Cómo usarlo:
 - tipo_trabajo y horario_rotativo: si el horario es rotativo, NO asumas un turno fijo de lunes a viernes. Dejá estudio en ventanas típicas (siesta / noche) y marcá conflicto si sugerís una cursada o un bloque que choca con turnos variables.
 - otras_actividades: respetá lo que escribió. Si dice "entreno de 19 a 21, lunes a jueves", no pongas estudio ahí. Nombrá esa actividad en el resumen.
 - metodo_estudio: pomodoro = bloques de 50–90 min con pausa; bloques_largos = 2 h; revision_espaciada = bloques más cortos varios días.
+- Si una materia trae dia_semana, horario o comision (del cronograma cargado), respetalos para no pisar la cursada.
 
 El resumen (campo resumen) tiene que ser personalizado, no genérico.
 Ejemplo MALO: "Se armó tu calendario de estudio para esta semana."
