@@ -39,3 +39,7 @@ export function etiquetaTipoDocumento(tipo: TipoDocumentoPlan): string {
   if (tipo === "cronograma") return "Cronograma";
   return "Plan de estudios";
 }
+
+export function nombreArchivoSeguro(nombre: string): string {
+  return nombre.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "archivo";
+}

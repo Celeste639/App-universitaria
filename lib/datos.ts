@@ -1,11 +1,20 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseCorrelativas, parseMaterias } from "@/lib/plan";
 import { alinearCorrelativas } from "@/lib/correlativas";
-import type { CalendarioGenerado, Correlativa, EstadoMateria, EventoCalendario, Materia, PerfilEstudiante } from "@/lib/types";
+import type {
+  CalendarioGenerado,
+  Correlativa,
+  EstadoMateria,
+  EventoCalendario,
+  Materia,
+  PerfilEstudiante,
+  SesionEstudio,
+} from "@/lib/types";
 import type { Json } from "@/types/database";
 import { startOfWeek } from "date-fns";
 
 export type PlanGuardado = {
+  id: string;
   materias: Materia[];
   correlativas: Correlativa[];
 };
@@ -21,7 +30,7 @@ export async function cargarPlanYAvance(userId: string): Promise<{
     await Promise.all([
       supabase
         .from("planes_estudio")
-        .select("materias, correlativas")
+        .select("id, materias, correlativas")
         .eq("user_id", userId)
         .order("creado_en", { ascending: false })
         .limit(1)
@@ -42,6 +51,7 @@ export async function cargarPlanYAvance(userId: string): Promise<{
   const materias = planRow ? parseMaterias(planRow.materias) : [];
   const plan = planRow
     ? {
+        id: planRow.id,
         materias,
         correlativas: alinearCorrelativas(
           materias,
@@ -115,4 +125,35 @@ export async function cargarCalendarioSemana(
 
   if (!data) return null;
   return parseCalendarioJson(data.eventos);
+}
+
+function semanaActualIso(): string {
+  const lunes = startOfWeek(new Date(), { weekStartsOn: 1 });
+  lunes.setHours(0, 0, 0, 0);
+  return lunes.toISOString().slice(0, 10);
+}
+
+export async function invalidarCalendarioSemanaActual(userId: string): Promise<void> {
+  const supabase = createSupabaseServerClient();
+  await supabase
+    .from("calendario")
+    .delete()
+    .eq("user_id", userId)
+    .eq("semana", semanaActualIso());
+}
+
+export async function cargarSesionesMateria(
+  userId: string,
+  materiaId: string,
+): Promise<SesionEstudio[]> {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("sesiones_estudio")
+    .select("id, materia_id, contenido_original, resumen_ia, creado_en")
+    .eq("user_id", userId)
+    .eq("materia_id", materiaId)
+    .order("creado_en", { ascending: false })
+    .limit(20);
+
+  return data ?? [];
 }

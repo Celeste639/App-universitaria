@@ -69,6 +69,19 @@ export type RankingMateria = {
   explicacion?: string;
 };
 
+export type SesionEstudio = {
+  id: string;
+  materia_id: string;
+  contenido_original: string | null;
+  resumen_ia: string | null;
+  creado_en: string;
+};
+
+export type AvanceMateria = {
+  materia_id: string;
+  estado: EstadoMateria;
+};
+
 export type ResultadoAccion<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };

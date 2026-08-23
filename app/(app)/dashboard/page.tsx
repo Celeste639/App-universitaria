@@ -65,8 +65,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Tu semana</h1>
         <p className="mt-2 text-sm text-clever-muted">
-          El orden sale de las correlativas del plan. El ranking aparece al instante;
-          el calendario se arma en paralelo y queda guardado para la semana.
+          El orden sale de las correlativas. Marcá cursando o aprobada y el ranking
+          se actualiza. El calendario se arma en paralelo y queda guardado para la
+          semana.{" "}
+          <Link href="/revisar-plan" className="font-medium text-clever-skyDeep hover:underline">
+            Revisar correlativas
+          </Link>
         </p>
       </div>
 
@@ -83,6 +87,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               return (
                 <CardMateria
                   key={item.materia.id}
+                  materiaId={item.materia.id}
                   nombre={item.materia.nombre}
                   codigo={item.materia.codigo ?? item.materia.id}
                   estado={estadoVisualMateria(
@@ -91,9 +96,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     plan.correlativas,
                     avance,
                   )}
+                  estadoPersistido={estado}
                   puntaje={item.puntaje}
                   explicacion={item.explicacion}
                   href={`/materias/${encodeURIComponent(item.materia.id)}`}
+                  mostrarSelector
                 />
               );
             })

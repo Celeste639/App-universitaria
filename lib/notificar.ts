@@ -1,7 +1,7 @@
 "use client";
 
 export const AVISO_ANALISIS_LISTO =
-  "Clever ya analizó tu plan de estudios. El ranking y el calendario están listos.";
+  "Clever ya analizó tu plan. Revisá correlativas y marcá lo que ya cursaste o aprobaste.";
 
 export async function pedirPermisoNotificaciones(): Promise<void> {
   if (typeof window === "undefined" || !("Notification" in window)) return;

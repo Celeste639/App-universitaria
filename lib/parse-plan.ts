@@ -1,5 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createAnthropicClient, MODELO_CLAUDE } from "@/lib/anthropic";
+import {
+  bloquesDeArchivo,
+  esPdf,
+  esTextoPlano,
+  tipoImagen,
+} from "@/lib/archivos-llm";
 import { alinearCorrelativas, resolverMateriaId } from "@/lib/correlativas";
 import { MAX_BYTES_ARCHIVO, MAX_BYTES_TOTAL } from "@/lib/documentos";
 import type { Correlativa, Materia, PlanEstudioParseado, TipoDocumentoPlan } from "@/lib/types";
@@ -98,8 +104,6 @@ const HERRAMIENTA_PLAN = {
   },
 } satisfies Anthropic.Tool;
 
-type ImagenSoportada = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
-
 export type ArchivoPlan = {
   name: string;
   type: string;
@@ -108,85 +112,6 @@ export type ArchivoPlan = {
   tipo?: TipoDocumentoPlan;
   relativePath?: string;
 };
-
-function tipoImagen(file: Pick<ArchivoPlan, "name" | "type">): ImagenSoportada | null {
-  if (
-    file.type === "image/jpeg" ||
-    file.type === "image/png" ||
-    file.type === "image/gif" ||
-    file.type === "image/webp"
-  ) {
-    return file.type;
-  }
-  const nombre = file.name.toLowerCase();
-  if (nombre.endsWith(".jpg") || nombre.endsWith(".jpeg")) return "image/jpeg";
-  if (nombre.endsWith(".png")) return "image/png";
-  if (nombre.endsWith(".gif")) return "image/gif";
-  if (nombre.endsWith(".webp")) return "image/webp";
-  return null;
-}
-
-function esPdf(file: Pick<ArchivoPlan, "name" | "type">): boolean {
-  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-}
-
-function esTextoPlano(file: Pick<ArchivoPlan, "name" | "type">): boolean {
-  return (
-    file.type === "text/plain" ||
-    file.type === "text/csv" ||
-    /\.(txt|csv)$/i.test(file.name)
-  );
-}
-
-function bloquesDeArchivo(file: ArchivoPlan): Anthropic.ContentBlockParam[] {
-  const etiqueta = `Archivo "${file.relativePath ?? file.name}" (tipo: ${file.tipo ?? "plan"}).`;
-
-  if (esTextoPlano(file)) {
-    return [
-      {
-        type: "text",
-        text: `${etiqueta}\n${file.bytes.toString("utf8").slice(0, 20000)}`,
-      },
-    ];
-  }
-
-  if (esPdf(file)) {
-    return [
-      {
-        type: "text",
-        text: etiqueta,
-      },
-      {
-        type: "document",
-        source: {
-          type: "base64",
-          media_type: "application/pdf",
-          data: file.bytes.toString("base64"),
-        },
-      },
-    ];
-  }
-
-  const mediaType = tipoImagen(file);
-  if (!mediaType) {
-    throw new Error("FORMATO_INVALIDO");
-  }
-
-  return [
-    {
-      type: "text",
-      text: etiqueta,
-    },
-    {
-      type: "image",
-      source: {
-        type: "base64",
-        media_type: mediaType,
-        data: file.bytes.toString("base64"),
-      },
-    },
-  ];
-}
 
 function limpiarTexto(valor: unknown): string | undefined {
   if (typeof valor !== "string") return undefined;
@@ -327,7 +252,10 @@ export async function extraerPlanConClaude(
 
   try {
     const contenido: Anthropic.ContentBlockParam[] = files.flatMap((file) =>
-      bloquesDeArchivo(file),
+      bloquesDeArchivo({
+        ...file,
+        etiqueta: `Archivo "${file.relativePath ?? file.name}" (tipo: ${file.tipo ?? "plan"}).`,
+      }),
     );
     contenido.push({
       type: "text",

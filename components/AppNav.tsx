@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 const LINKS_APP = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/historial", label: "Historial" },
+  { href: "/revisar-plan", label: "Revisar plan" },
   { href: "/onboarding", label: "Cargar plan" },
 ];
 

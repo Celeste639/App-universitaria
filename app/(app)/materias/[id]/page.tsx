@@ -1,9 +1,11 @@
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { notFound } from "next/navigation";
 import { CardMateria } from "@/components/CardMateria";
+import { FormSesionMateria } from "@/components/FormSesionMateria";
 import { TemporizadorPomodoro } from "@/components/TemporizadorPomodoro";
-import { UploadSesionMateria } from "@/components/UploadSesionMateria";
 import { requireAuthUser } from "@/lib/auth";
-import { cargarPlanYAvance } from "@/lib/datos";
+import { cargarPlanYAvance, cargarSesionesMateria } from "@/lib/datos";
 import { estadoVisualMateria } from "@/lib/plan";
 
 type MateriaPageProps = {
@@ -11,11 +13,15 @@ type MateriaPageProps = {
 };
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function MateriaPage({ params }: MateriaPageProps) {
   const user = await requireAuthUser();
   const materiaId = decodeURIComponent(params.id);
-  const { plan, avance } = await cargarPlanYAvance(user.id);
+  const [{ plan, avance }, sesiones] = await Promise.all([
+    cargarPlanYAvance(user.id),
+    cargarSesionesMateria(user.id, materiaId),
+  ]);
   const materia = plan?.materias.find((item) => item.id === materiaId);
 
   if (!materia || !plan) {
@@ -28,6 +34,7 @@ export default async function MateriaPage({ params }: MateriaPageProps) {
     <main className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
       <div className="space-y-6">
         <CardMateria
+          materiaId={materia.id}
           nombre={materia.nombre}
           codigo={materia.codigo ?? materia.id}
           estado={estadoVisualMateria(
@@ -36,35 +43,48 @@ export default async function MateriaPage({ params }: MateriaPageProps) {
             plan.correlativas,
             avance,
           )}
+          estadoPersistido={estado}
+          mostrarSelector
         />
 
         <section className="rounded-xl border border-clever-sand bg-clever-cream p-5 shadow-sm">
           <h2 className="text-lg font-medium">Sesión de estudio</h2>
           <p className="mt-1 text-sm text-clever-muted">
-            Subí uno o varios PDF de la materia (clases de 20+ páginas entran).
-            El resumen con IA se conecta en el próximo paso.
+            Subí uno o varios PDF de la materia (clases de 20+ páginas entran) o
+            pegá tus notas. Clever guarda el resumen acá.
           </p>
           <div className="mt-4">
-            <UploadSesionMateria />
+            <FormSesionMateria materiaId={materia.id} />
           </div>
-          <textarea
-            className="mt-4 w-full rounded-lg border border-clever-sand bg-white px-3 py-2 text-sm"
-            rows={6}
-            placeholder="O pegá acá las notas de la clase…"
-          />
-          <button
-            type="button"
-            className="mt-4 rounded-lg bg-clever-skyDeep px-4 py-2 text-sm font-medium text-white hover:bg-[#4d92b3]"
-          >
-            Generar resumen
-          </button>
         </section>
 
-        <section className="rounded-xl border border-dashed border-clever-sand bg-clever-cream p-5">
-          <h3 className="text-sm font-medium text-clever-ink">Resumen de la IA</h3>
-          <p className="mt-2 text-sm text-clever-muted">
-            Todavía no hay sesiones guardadas para esta materia.
-          </p>
+        <section className="space-y-3">
+          <h3 className="text-sm font-medium text-clever-ink">Resúmenes guardados</h3>
+          {sesiones.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-clever-sand bg-clever-cream p-5 text-sm text-clever-muted">
+              Todavía no hay sesiones guardadas para esta materia.
+            </p>
+          ) : (
+            sesiones.map((sesion) => (
+              <article
+                key={sesion.id}
+                className="rounded-xl border border-clever-sand bg-clever-cream p-5"
+              >
+                <p className="text-xs text-clever-muted">
+                  {format(new Date(sesion.creado_en), "d MMM yyyy, HH:mm", {
+                    locale: es,
+                  })}
+                </p>
+                {sesion.resumen_ia ? (
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-clever-ink">
+                    {sesion.resumen_ia}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-clever-muted">Sin resumen.</p>
+                )}
+              </article>
+            ))
+          )}
         </section>
       </div>
 

@@ -28,8 +28,7 @@ Abrí [http://localhost:3000](http://localhost:3000).
 ## Páginas
 
 - `/onboarding` — carga del plan + datos personales
+- `/revisar-plan` — correlativas editables y avance (cursando / aprobada)
 - `/dashboard` — ranking y calendario semanal
-- `/materias/[id]` — sesiones de estudio y pomodoro
+- `/materias/[id]` — sesiones de estudio, resúmenes con IA y pomodoro
 - `/historial` — avance de carrera
-
-Las Server Actions en `app/actions/` todavía son stubs: el LLM y la persistencia se conectan pantalla por pantalla.

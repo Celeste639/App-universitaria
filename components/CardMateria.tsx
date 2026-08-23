@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { EstadoVisualMateria } from "@/lib/types";
+import { SelectorEstado } from "@/components/SelectorEstado";
+import type { EstadoMateria, EstadoVisualMateria } from "@/lib/types";
 
 const ESTILOS: Record<
   EstadoVisualMateria,
@@ -28,26 +29,32 @@ const ESTILOS: Record<
 };
 
 type CardMateriaProps = {
+  materiaId?: string;
   nombre: string;
   codigo?: string;
   estado: EstadoVisualMateria;
+  estadoPersistido?: EstadoMateria;
   puntaje?: number;
   explicacion?: string;
   href?: string;
+  mostrarSelector?: boolean;
 };
 
 export function CardMateria({
+  materiaId,
   nombre,
   codigo,
   estado,
+  estadoPersistido,
   puntaje,
   explicacion,
   href,
+  mostrarSelector = false,
 }: CardMateriaProps) {
   const estilos = ESTILOS[estado];
 
-  const contenido = (
-    <>
+  return (
+    <article className={`rounded-xl border p-4 shadow-sm ${estilos.wrap}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           {codigo && (
@@ -57,9 +64,7 @@ export function CardMateria({
           )}
           <h3 className="text-base font-semibold text-clever-ink">{nombre}</h3>
         </div>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${estilos.badge}`}
-        >
+        <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${estilos.badge}`}>
           {estilos.etiqueta}
         </span>
       </div>
@@ -70,22 +75,19 @@ export function CardMateria({
         </p>
       )}
       {explicacion && (
-        <p className="mt-2 text-sm leading-relaxed text-clever-muted">
-          {explicacion}
-        </p>
+        <p className="mt-2 text-sm leading-relaxed text-clever-muted">{explicacion}</p>
       )}
-    </>
+      {mostrarSelector && materiaId && estadoPersistido ? (
+        <SelectorEstado materiaId={materiaId} estado={estadoPersistido} />
+      ) : null}
+      {href && (
+        <Link
+          href={href}
+          className="mt-3 inline-block text-sm font-medium text-clever-skyDeep hover:underline"
+        >
+          Abrir materia
+        </Link>
+      )}
+    </article>
   );
-
-  const className = `block rounded-xl border p-4 shadow-sm ${estilos.wrap}`;
-
-  if (href) {
-    return (
-      <Link href={href} className={`${className} transition hover:shadow-md`}>
-        {contenido}
-      </Link>
-    );
-  }
-
-  return <article className={className}>{contenido}</article>;
 }

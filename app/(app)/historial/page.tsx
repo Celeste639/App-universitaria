@@ -42,8 +42,11 @@ export default async function HistorialPage() {
           Historial de avance
         </h1>
         <p className="mt-2 text-sm text-clever-muted">
-          Materias aprobadas, en curso, habilitadas y bloqueadas según el plan
-          cargado.
+          Marcá cursando o aprobada: el porcentaje y el ranking se mueven con tu
+          avance.{" "}
+          <Link href="/revisar-plan" className="font-medium text-clever-skyDeep hover:underline">
+            Revisar correlativas
+          </Link>
         </p>
       </div>
 
@@ -67,6 +70,7 @@ export default async function HistorialPage() {
           return (
             <CardMateria
               key={materia.id}
+              materiaId={materia.id}
               nombre={materia.nombre}
               codigo={materia.codigo ?? materia.id}
               estado={estadoVisualMateria(
@@ -75,7 +79,9 @@ export default async function HistorialPage() {
                 plan.correlativas,
                 avance,
               )}
+              estadoPersistido={estado}
               href={`/materias/${encodeURIComponent(materia.id)}`}
+              mostrarSelector
             />
           );
         })}

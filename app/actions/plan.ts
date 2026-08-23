@@ -3,7 +3,8 @@
 import { extraerPlanConClaude } from "@/lib/parse-plan";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/auth";
-import { inferirTipoDocumento } from "@/lib/documentos";
+import { inferirTipoDocumento, nombreArchivoSeguro } from "@/lib/documentos";
+import { mensajeErrorSupabase } from "@/lib/errores-supabase";
 import type { Json } from "@/types/database";
 import type { PlanEstudioParseado, ResultadoAccion, TipoDocumentoPlan } from "@/lib/types";
 
@@ -11,28 +12,6 @@ function textoOpcional(valor: FormDataEntryValue | null): string | null {
   if (typeof valor !== "string") return null;
   const recortado = valor.trim();
   return recortado.length > 0 ? recortado : null;
-}
-
-function nombreArchivoSeguro(nombre: string): string {
-  return nombre.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80) || "plan";
-}
-
-function mensajeErrorSupabase(
-  error: { code?: string; message?: string },
-  fallback: string,
-): string {
-  const texto = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
-  if (
-    texto.includes("pgrst205") ||
-    texto.includes("schema cache") ||
-    texto.includes("does not exist")
-  ) {
-    return "Faltan las tablas en Supabase. Abrí el SQL Editor, pegá supabase/schema.sql y dale Run.";
-  }
-  if (texto.includes("row-level security") || texto.includes("rls")) {
-    return "Supabase rechazó el guardado por permisos. Volvé a ejecutar supabase/schema.sql completo (incluye las políticas RLS).";
-  }
-  return fallback;
 }
 
 function esTipoDocumento(valor: FormDataEntryValue | undefined): valor is TipoDocumentoPlan {

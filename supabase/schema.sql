@@ -221,17 +221,29 @@ values
     'planes-estudio',
     'planes-estudio',
     false,
-    10485760,
-    array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/heic']
+    33554432,
+    array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'text/plain', 'text/csv']
   ),
   (
     'contenido-clases',
     'contenido-clases',
     false,
-    20971520,
-    array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'text/plain']
+    33554432,
+    array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'text/plain', 'text/csv']
   )
 on conflict (id) do nothing;
+
+update storage.buckets
+set
+  file_size_limit = 33554432,
+  allowed_mime_types = array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'text/plain', 'text/csv']
+where id = 'planes-estudio';
+
+update storage.buckets
+set
+  file_size_limit = 33554432,
+  allowed_mime_types = array['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'text/plain', 'text/csv']
+where id = 'contenido-clases';
 
 drop policy if exists "planes_storage_select_own" on storage.objects;
 create policy "planes_storage_select_own"

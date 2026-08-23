@@ -42,7 +42,7 @@ export function OnboardingForm() {
 
       setListo(true);
       notificarAnalisisListo();
-      router.push("/dashboard?analisis=ok");
+      router.push("/revisar-plan?analisis=ok");
       router.refresh();
     } catch {
       setError("Ocurrió un error inesperado. Probá de nuevo en unos segundos.");
@@ -139,7 +139,7 @@ export function OnboardingForm() {
       )}
       {listo && (
         <p className="rounded-xl border border-clever-skyMid bg-clever-sky px-4 py-3 text-sm text-clever-ink" role="status">
-          Clever ya analizó tu plan. Te avisamos y te llevamos al dashboard.
+          Clever ya analizó tu plan. Te avisamos y te llevamos a revisar correlativas.
         </p>
       )}
 
