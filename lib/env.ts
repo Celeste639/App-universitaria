@@ -12,3 +12,6 @@ export function hasSupabaseConfig(): boolean {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
 }
+
+export const MENSAJE_FALTAN_CLAVES_SUPABASE =
+  "Faltan las claves de Supabase. En local van en .env.local; en el deploy, en Environment Variables de Vercel (y hay que redesplegar).";

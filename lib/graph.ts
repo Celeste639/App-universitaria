@@ -59,9 +59,15 @@ export function rankingEstrategico(
     .filter((materia) => idsNoCursadas.has(materia.id))
     .map((materia) => {
       const { directas, indirectas } = materiasDependientes(materia.id, grafo);
-      const futurasDirectas = directas.filter((id) => idsNoCursadas.has(id));
-      const futurasIndirectas = indirectas.filter((id) =>
-        idsNoCursadas.has(id),
+      const futurasDirectas = directas.filter(
+        (id) => id !== materia.id && idsNoCursadas.has(id) && porId.has(id),
+      );
+      const futurasIndirectas = indirectas.filter(
+        (id) =>
+          id !== materia.id &&
+          idsNoCursadas.has(id) &&
+          porId.has(id) &&
+          !futurasDirectas.includes(id),
       );
 
       return {
@@ -92,5 +98,10 @@ export function explicarRankingLocal(item: RankingMateria): string {
     return `Priorizá ${item.materia.nombre} porque desbloquea ${directas}.`;
   }
 
-  return `Priorizá ${item.materia.nombre} porque desbloquea ${directas} y, más adelante, ${item.desbloqueaIndirectas.join(", ")}.`;
+  const extra = item.desbloqueaIndirectas;
+  if (extra.length > 6) {
+    return `Priorizá ${item.materia.nombre} porque desbloquea ${directas} y, más adelante, otras ${extra.length} materias en cadena.`;
+  }
+
+  return `Priorizá ${item.materia.nombre} porque desbloquea ${directas} y, más adelante, ${extra.join(", ")}.`;
 }

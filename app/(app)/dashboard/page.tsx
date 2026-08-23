@@ -126,6 +126,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   )}
                   estadoPersistido={estado}
                   puntaje={item.puntaje}
+                  directas={item.desbloqueaDirectas.length}
                   explicacion={item.explicacion}
                   href={`/materias/${encodeURIComponent(item.materia.id)}`}
                   mostrarSelector

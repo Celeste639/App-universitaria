@@ -39,7 +39,9 @@ function ListaPrioridad({
             {index + 1}. {item.materia.nombre}
           </p>
           <p className="text-xs text-surface-text">
-            Desbloquea {item.puntaje} materia{item.puntaje === 1 ? "" : "s"}
+            {item.desbloqueaDirectas.length !== item.puntaje
+              ? `Abre ${item.desbloqueaDirectas.length} de forma directa; en cadena, ${item.puntaje}`
+              : `Desbloquea ${item.puntaje} materia${item.puntaje === 1 ? "" : "s"}`}
             {item.explicacion ? ` · ${item.explicacion}` : ""}
           </p>
         </li>

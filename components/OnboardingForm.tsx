@@ -62,9 +62,10 @@ export function OnboardingForm() {
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Documentos de la carrera</h2>
         <p className="text-sm text-surface-text">
-          El plan de estudios alcanza para avanzar. Si tenés correlativas o el
-          cronograma de dictado, sumalos — o subí toda la carpeta. Los PDF largos
-          (20+ páginas) entran bien.
+          El plan de estudios alcanza para avanzar. Si tenés el PDF de
+          correlativas o el cronograma, sumalos — o subí toda la carpeta. Los PDF
+          largos (20+ páginas) entran bien. Volver a cargar reemplaza el plan
+          anterior.
         </p>
         <UploadPlan
           multiple

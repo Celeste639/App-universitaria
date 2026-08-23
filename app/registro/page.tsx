@@ -1,5 +1,7 @@
 import { AppNav } from "@/components/AppNav";
 import { AuthForm } from "@/components/AuthForm";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { hasSupabaseConfig, MENSAJE_FALTAN_CLAVES_SUPABASE } from "@/lib/env";
 
 export default function RegistroPage() {
   return (
@@ -11,6 +13,14 @@ export default function RegistroPage() {
           Usá tu email. Después vas a subir el plan de estudios.
         </p>
         <div className="mt-8 rounded-xl border border-primary/30 bg-surface p-5 shadow-sm">
+          {!hasSupabaseConfig() && (
+            <div className="mb-4">
+              <ErrorMessage
+                title="Falta configurar Supabase"
+                message={MENSAJE_FALTAN_CLAVES_SUPABASE}
+              />
+            </div>
+          )}
           <AuthForm modo="registro" next="/onboarding" />
         </div>
       </main>

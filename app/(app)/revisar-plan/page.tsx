@@ -44,7 +44,12 @@ export default async function RevisarPlanPage({ searchParams }: RevisarPlanPageP
         <p className="mt-2 text-sm text-surface-text">
           traza leyó {plan.materias.length} materias y encontró correlativas en{" "}
           {correlativasDetectadas}. Corregí si hace falta y marcá lo que ya
-          cursaste o aprobaste: el ranking se arma con eso.
+          cursaste o aprobaste: el ranking se arma con eso. Si un taller de
+          primer año aparece desbloqueando decenas de materias,{" "}
+          <Link href="/onboarding" className="font-medium text-primary-text hover:underline">
+            volvé a subir el plan y el PDF de correlativas
+          </Link>
+          .
         </p>
       </div>
       <EditorPlan

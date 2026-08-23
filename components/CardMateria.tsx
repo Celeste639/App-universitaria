@@ -45,6 +45,7 @@ type CardMateriaProps = {
   estado: EstadoVisualMateria;
   estadoPersistido?: EstadoMateria;
   puntaje?: number;
+  directas?: number;
   explicacion?: string;
   href?: string;
   mostrarSelector?: boolean;
@@ -57,6 +58,7 @@ export function CardMateria({
   estado,
   estadoPersistido,
   puntaje,
+  directas,
   explicacion,
   href,
   mostrarSelector = false,
@@ -80,8 +82,9 @@ export function CardMateria({
       </div>
       {typeof puntaje === "number" && (
         <p className="mt-3 text-sm text-surface-text">
-          Desbloquea {puntaje} materia{puntaje === 1 ? "" : "s"} futura
-          {puntaje === 1 ? "" : "s"}
+          {typeof directas === "number" && directas !== puntaje
+            ? `Abre ${directas} materia${directas === 1 ? "" : "s"} de forma directa; en cadena, ${puntaje}.`
+            : `Desbloquea ${puntaje} materia${puntaje === 1 ? "" : "s"} futura${puntaje === 1 ? "" : "s"}`}
         </p>
       )}
       {explicacion && (

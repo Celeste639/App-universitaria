@@ -1,5 +1,7 @@
 import { AppNav } from "@/components/AppNav";
 import { AuthForm } from "@/components/AuthForm";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { hasSupabaseConfig, MENSAJE_FALTAN_CLAVES_SUPABASE } from "@/lib/env";
 
 type LoginPageProps = {
   searchParams: { next?: string };
@@ -15,6 +17,14 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           Entrá para cargar tu plan y ver el ranking de materias.
         </p>
         <div className="mt-8 rounded-xl border border-primary/30 bg-surface p-5 shadow-sm">
+          {!hasSupabaseConfig() && (
+            <div className="mb-4">
+              <ErrorMessage
+                title="Falta configurar Supabase"
+                message={MENSAJE_FALTAN_CLAVES_SUPABASE}
+              />
+            </div>
+          )}
           <AuthForm modo="login" next={searchParams.next} />
         </div>
       </main>

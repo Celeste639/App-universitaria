@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { hasSupabaseConfig } from "@/lib/env";
+import { hasSupabaseConfig, MENSAJE_FALTAN_CLAVES_SUPABASE } from "@/lib/env";
 import { mensajeErrorAuth, rutaSegura } from "@/lib/auth";
 import type { ResultadoAccion } from "@/lib/types";
 
@@ -18,7 +18,7 @@ export async function iniciarSesion(
 ): Promise<ResultadoAccion<{ next: string }>> {
   const supabase = supabaseOrError();
   if (!supabase) {
-    return { ok: false, error: "Faltan las claves de Supabase en .env.local." };
+    return { ok: false, error: MENSAJE_FALTAN_CLAVES_SUPABASE };
   }
 
   const email = String(formData.get("email") ?? "").trim();
@@ -40,7 +40,7 @@ export async function registrarUsuario(
 ): Promise<ResultadoAccion<{ next: string; confirmarEmail: boolean }>> {
   const supabase = supabaseOrError();
   if (!supabase) {
-    return { ok: false, error: "Faltan las claves de Supabase en .env.local." };
+    return { ok: false, error: MENSAJE_FALTAN_CLAVES_SUPABASE };
   }
 
   const email = String(formData.get("email") ?? "").trim();

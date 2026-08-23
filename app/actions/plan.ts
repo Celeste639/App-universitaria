@@ -72,11 +72,28 @@ export async function completarOnboarding(
     ),
   );
 
-  const { error: errorPlan } = await supabase.from("planes_estudio").insert({
-    user_id: user.id,
+  const { data: planExistente } = await supabase
+    .from("planes_estudio")
+    .select("id")
+    .eq("user_id", user.id)
+    .order("creado_en", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const payloadPlan = {
     materias: parseado.data.materias as unknown as Json,
     correlativas: parseado.data.correlativas as unknown as Json,
-  });
+  };
+
+  const { error: errorPlan } = planExistente
+    ? await supabase
+        .from("planes_estudio")
+        .update(payloadPlan)
+        .eq("id", planExistente.id)
+    : await supabase.from("planes_estudio").insert({
+        user_id: user.id,
+        ...payloadPlan,
+      });
 
   if (errorPlan) {
     return {

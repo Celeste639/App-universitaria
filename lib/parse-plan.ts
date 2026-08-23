@@ -6,7 +6,12 @@ import {
   esTextoPlano,
   tipoImagen,
 } from "@/lib/archivos-llm";
-import { alinearCorrelativas, resolverMateriaId } from "@/lib/correlativas";
+import {
+  alinearCorrelativas,
+  normalizarClave,
+  podarRequisitosMasivos,
+  resolverMateriaId,
+} from "@/lib/correlativas";
 import { MAX_BYTES_ARCHIVO, MAX_BYTES_TOTAL } from "@/lib/documentos";
 import type { Correlativa, Materia, PlanEstudioParseado, TipoDocumentoPlan } from "@/lib/types";
 
@@ -76,7 +81,7 @@ const HERRAMIENTA_PLAN = {
               type: "array",
               items: { type: "string" },
               description:
-                "IDs que esta materia ABRE después. Usalo solo si el documento dice 'habilita/abre/correlativa de'. Si ya llenaste requiere, dejá [].",
+                "IDs que esta materia ABRE después, SOLO si el documento lo lista explícitamente. Lista corta. Si ya llenaste requiere, o si no está escrito, dejá []. NUNCA pongas el resto de la carrera.",
             },
           },
           required: ["materia_id", "requiere", "habilita"],
@@ -169,7 +174,10 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
     return { error: "El plan no trajo materias válidas. Probá con otro archivo." };
   }
 
+  const materiasUnicas = deduplicarMaterias(materias);
+
   const correlativasCrudas: Correlativa[] = [];
+  const maxHabilita = Math.max(8, Math.floor(materiasUnicas.length * 0.3));
 
   if (Array.isArray(data.correlativas)) {
     for (const item of data.correlativas) {
@@ -179,25 +187,31 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
       if (!materiaId) continue;
 
       const requiere = Array.isArray(fila.requiere)
-        ? fila.requiere.filter((id): id is string => typeof id === "string")
+        ? fila.requiere.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
         : [];
       const habilita = Array.isArray(fila.habilita)
-        ? fila.habilita.filter((id): id is string => typeof id === "string")
+        ? fila.habilita.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
         : [];
 
       if (requiere.length > 0) {
         correlativasCrudas.push({ materia_id: materiaId, requiere });
       }
-      for (const destino of habilita) {
-        correlativasCrudas.push({
-          materia_id: destino,
-          requiere: [materiaId],
-        });
+      // Una lista enorme en habilita suele ser "el resto de la carrera", no correlativas reales.
+      if (habilita.length > 0 && habilita.length <= maxHabilita) {
+        for (const destino of habilita) {
+          correlativasCrudas.push({
+            materia_id: destino,
+            requiere: [materiaId],
+          });
+        }
       }
     }
   }
 
-  const correlativas = alinearCorrelativas(materias, correlativasCrudas);
+  const correlativas = podarRequisitosMasivos(
+    alinearCorrelativas(materiasUnicas, correlativasCrudas),
+    materiasUnicas.length,
+  );
 
   if (Array.isArray(data.cronograma)) {
     for (const item of data.cronograma) {
@@ -205,9 +219,9 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
       const fila = item as Record<string, unknown>;
       const materiaId = limpiarTexto(fila.materia_id);
       if (!materiaId) continue;
-      const resuelto = resolverMateriaId(materiaId, materias);
+      const resuelto = resolverMateriaId(materiaId, materiasUnicas);
       const materia = resuelto
-        ? materias.find((item) => item.id === resuelto)
+        ? materiasUnicas.find((item) => item.id === resuelto)
         : undefined;
       if (!materia) continue;
       materia.dia_semana = limpiarTexto(fila.dia_semana) ?? materia.dia_semana;
@@ -219,7 +233,26 @@ function normalizarPlan(input: unknown): PlanEstudioParseado | { error: string }
     }
   }
 
-  return { materias, correlativas };
+  return { materias: materiasUnicas, correlativas };
+}
+
+function deduplicarMaterias(materias: Materia[]): Materia[] {
+  const vistas = new Set<string>();
+  const unicas: Materia[] = [];
+
+  for (const materia of materias) {
+    const porNombre = `n:${normalizarClave(materia.nombre)}`;
+    const porCodigo = materia.codigo
+      ? `c:${normalizarClave(materia.codigo)}`
+      : null;
+    if (vistas.has(porNombre)) continue;
+    if (porCodigo && vistas.has(porCodigo)) continue;
+    vistas.add(porNombre);
+    if (porCodigo) vistas.add(porCodigo);
+    unicas.push(materia);
+  }
+
+  return unicas;
 }
 
 export async function extraerPlanConClaude(
@@ -264,15 +297,21 @@ Tipos posibles: plan (materias), correlativas (requisitos), cronograma (qué se 
 El plan de estudios es suficiente para avanzar: si no hay correlativas, devolvé correlativas=[] (requiere y habilita vacíos).
 Si no hay cronograma, devolvé cronograma=[] y no inventes horarios.
 
-IDs: usá el código oficial (ej. MAT101) como id en TODAS las listas, el mismo string.
+IDs: usá el código oficial (ej. MAT101, 1023) como id en TODAS las listas, el mismo string. Si no hay código, usá un slug del NOMBRE COMPLETO (no una palabra suelta).
+Prohibido usar como id tokens genéricos: "Informática", "Taller", "Análisis", "I", "II", "General".
 
-CORRELATIVAS — no inviertas el sentido:
-- requiere = materias que hay que APROBAR ANTES de cursar materia_id.
+CORRELATIVAS — leé la tabla tal cual, no inventes cadenas:
+- En planes argentinos, "para cursar" / "para rendir" / "correlativas" de UNA FILA son REQUISITOS de esa materia (van en requiere). No son materias que la fila habilita.
+- requiere = materias que hay que tener (regular o aprobada) ANTES de cursar materia_id.
   Ejemplo: "Análisis II tiene correlativa Análisis I" → { materia_id: "AN2", requiere: ["AN1"], habilita: [] }
-- habilita = materias que ESTA materia abre DESPUÉS.
+- habilita = materias que ESTA materia abre DESPUÉS, SOLO si el documento lo dice con esas palabras. Lista corta. Si no está escrito, habilita=[].
   Ejemplo: "Álgebra I habilita Álgebra II" → { materia_id: "AL1", requiere: [], habilita: ["AL2"] }
-- No pongas lo mismo en requiere y habilita.
-- El ranking de la app cuenta cuántas materias FUTURAS dependen de cada una: si invertís requiere/habilita, el análisis queda mal.
+- Si una materia de 1.º año no tiene correlativas en la tabla: requiere=[] y habilita=[]. NO asumas que habilita el resto de la carrera.
+- NUNCA copies en habilita "todas las materias posteriores" ni más de un puñado explícito.
+- No pongas lo mismo en requiere y habilita. Preferí requiere.
+- Usá código oficial, el número de materia de la tabla, o el nombre COMPLETO. No uses una palabra suelta ("Informática") si el nombre es más largo.
+- Si las correlativas son números de fila (4, 6, 10), mapéalos a la materia con ese N.º. No inventes aristas extra.
+- El ranking calcula la cadena transitiva solo. No rellenes habilita para "adelantar" ese cálculo.
 
 Unificá materias repetidas. Completá correlativas y días/horarios cuando esos documentos existan.
 Marcá legible=false solo si no se puede leer el plan principal.`,
@@ -281,7 +320,7 @@ Marcá legible=false solo si no se puede leer el plan principal.`,
     const anthropic = createAnthropicClient();
     const respuesta = await anthropic.messages.create({
       model: MODELO_CLAUDE,
-      max_tokens: 8000,
+      max_tokens: 16000,
       tools: [HERRAMIENTA_PLAN],
       tool_choice: { type: "tool", name: "extraer_plan_estudio" },
       messages: [{ role: "user", content: contenido }],

@@ -94,10 +94,10 @@ export function UploadPlan({
         }}
         className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-10 text-center transition ${
           disabled
-            ? "cursor-not-allowed border-clever-sand bg-clever-beige text-clever-muted"
+            ? "cursor-not-allowed border-primary/20 bg-surface text-surface-text"
             : isDragging
-              ? "border-clever-skyDeep bg-clever-sky text-clever-ink"
-              : "border-clever-sand bg-clever-cream text-clever-muted hover:border-clever-skyMid hover:bg-clever-sky/50"
+              ? "border-accent bg-primary/40 text-primary-text"
+              : "border-primary/40 bg-surface text-surface-text hover:border-accent hover:bg-primary/20"
         }`}
       >
         <input
@@ -132,7 +132,7 @@ export function UploadPlan({
               ? fileName
               : "Arrastrá tu archivo o hacé clic para elegir"}
         </span>
-        <span className="mt-1 max-w-md text-xs text-clever-muted">
+        <span className="mt-1 max-w-md text-xs text-surface-text">
           {esMateria
             ? `Varios PDF de 20+ páginas están bien. PDF, imagen o txt · hasta ${maxArchivos} archivos · ${MB_POR_ARCHIVO} MB cada uno`
             : multiple
@@ -145,7 +145,7 @@ export function UploadPlan({
             type="button"
             disabled={disabled}
             onClick={() => inputArchivosRef.current?.click()}
-            className="rounded-lg border border-clever-sand bg-clever-cream px-3 py-1.5 text-sm font-medium text-clever-ink hover:bg-clever-sky disabled:opacity-50"
+            className="rounded-lg border border-primary/40 bg-surface-light px-3 py-1.5 text-sm font-medium text-primary-text hover:bg-primary/40 disabled:opacity-50"
           >
             {multiple ? "Elegir archivos" : "Elegir archivo"}
           </button>
@@ -154,7 +154,7 @@ export function UploadPlan({
               type="button"
               disabled={disabled}
               onClick={() => inputCarpetaRef.current?.click()}
-              className="rounded-lg border border-clever-sand bg-clever-cream px-3 py-1.5 text-sm font-medium text-clever-ink hover:bg-clever-sky disabled:opacity-50"
+              className="rounded-lg border border-primary/40 bg-surface-light px-3 py-1.5 text-sm font-medium text-primary-text hover:bg-primary/40 disabled:opacity-50"
             >
               Elegir carpeta
             </button>
@@ -167,14 +167,14 @@ export function UploadPlan({
           {files.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-2 rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 sm:flex-row sm:items-center"
+              className="flex flex-col gap-2 rounded-lg border border-primary/30 bg-surface px-3 py-2 sm:flex-row sm:items-center"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-clever-ink">
+                <p className="truncate text-sm font-medium text-text">
                   {item.file.name}
                 </p>
                 {item.relativePath !== item.file.name && (
-                  <p className="truncate text-xs text-clever-muted">{item.relativePath}</p>
+                  <p className="truncate text-xs text-surface-text">{item.relativePath}</p>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export function UploadPlan({
                         ),
                       );
                     }}
-                    className="rounded-md border border-clever-sand bg-white px-2 py-1 text-xs text-clever-ink"
+                    className="rounded-md border border-primary/30 bg-surface-light px-2 py-1 text-xs text-text"
                     aria-label={`Tipo de ${item.file.name}`}
                   >
                     <option value="plan">{etiquetaTipoDocumento("plan")}</option>
@@ -208,7 +208,7 @@ export function UploadPlan({
                   onClick={() =>
                     onFilesChange?.(files.filter((archivo) => archivo.id !== item.id))
                   }
-                  className="text-xs font-medium text-clever-muted hover:text-red-600"
+                  className="text-xs font-medium text-primary-text hover:underline"
                 >
                   Quitar
                 </button>

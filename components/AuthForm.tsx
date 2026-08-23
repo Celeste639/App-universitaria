@@ -58,17 +58,17 @@ export function AuthForm({ modo, next = "/dashboard" }: AuthFormProps) {
       }}
       className="space-y-4"
     >
-      <label className="block text-sm font-medium text-clever-ink">
+      <label className="block text-sm font-medium text-text">
         Email
         <input
           name="email"
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-primary/30 bg-surface-light px-3 py-2 text-sm text-text"
         />
       </label>
-      <label className="block text-sm font-medium text-clever-ink">
+      <label className="block text-sm font-medium text-text">
         Contraseña
         <input
           name="password"
@@ -76,7 +76,7 @@ export function AuthForm({ modo, next = "/dashboard" }: AuthFormProps) {
           required
           minLength={6}
           autoComplete={esRegistro ? "new-password" : "current-password"}
-          className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+          className="mt-1 w-full rounded-lg border border-primary/30 bg-surface-light px-3 py-2 text-sm text-text"
         />
       </label>
 
@@ -90,23 +90,23 @@ export function AuthForm({ modo, next = "/dashboard" }: AuthFormProps) {
       <button
         type="submit"
         disabled={enviando}
-        className="w-full rounded-lg bg-clever-skyDeep px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4d92b3] disabled:bg-clever-skyMid"
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text disabled:bg-primary/50"
       >
         {enviando ? "Esperá…" : esRegistro ? "Crear cuenta" : "Iniciar sesión"}
       </button>
 
-      <p className="text-center text-sm text-clever-muted">
+      <p className="text-center text-sm text-surface-text">
         {esRegistro ? (
           <>
             ¿Ya tenés cuenta?{" "}
-            <Link href="/login" className="font-medium text-clever-skyDeep hover:underline">
+            <Link href="/login" className="font-medium text-primary-text hover:underline">
               Iniciá sesión
             </Link>
           </>
         ) : (
           <>
             ¿No tenés cuenta?{" "}
-            <Link href="/registro" className="font-medium text-clever-skyDeep hover:underline">
+            <Link href="/registro" className="font-medium text-primary-text hover:underline">
               Registrate
             </Link>
           </>

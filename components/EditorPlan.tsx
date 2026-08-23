@@ -138,7 +138,7 @@ export function EditorPlan({
           type="button"
           onClick={() => void guardar()}
           disabled={enviando}
-          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-accent hover:text-accent-text disabled:bg-primary/50"
+          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text disabled:bg-primary/50"
         >
           {enviando
             ? "Guardando…"

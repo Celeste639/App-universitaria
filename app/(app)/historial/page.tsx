@@ -23,7 +23,7 @@ export default async function HistorialPage() {
           href="/onboarding"
           className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text"
         >
-          Ir al onboarding
+          Cargar plan de estudios
         </Link>
       </main>
     );
