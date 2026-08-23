@@ -124,21 +124,21 @@ export function EditorPlan({
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <label className="block flex-1 text-sm font-medium text-clever-ink">
+        <label className="block flex-1 text-sm font-medium text-text">
           Buscar materia
           <input
             type="search"
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
             placeholder="Nombre o código"
-            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-primary/30 bg-surface px-3 py-2 text-sm"
           />
         </label>
         <button
           type="button"
           onClick={() => void guardar()}
           disabled={enviando}
-          className="rounded-lg bg-clever-skyDeep px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4d92b3] disabled:bg-clever-skyMid"
+          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-accent hover:text-accent-text disabled:bg-primary/50"
         >
           {enviando
             ? "Guardando…"
@@ -150,14 +150,14 @@ export function EditorPlan({
 
       {error && <ErrorMessage title="No se pudo guardar" message={error} />}
       {ok && !redirigirAlDashboard && (
-        <p className="rounded-xl border border-clever-skyMid bg-clever-sky px-4 py-3 text-sm" role="status">
+        <p className="rounded-xl border border-primary/40 bg-primary px-4 py-3 text-sm" role="status">
           Listo. El ranking y las materias habilitadas ya usan estas correlativas y tu avance.
         </p>
       )}
 
       {grupos.map(([anio, lista]) => (
         <section key={anio} className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-clever-muted">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-surface-text">
             {anio}
           </h2>
           <ul className="space-y-3">
@@ -170,22 +170,22 @@ export function EditorPlan({
               return (
                 <li
                   key={materia.id}
-                  className="rounded-xl border border-clever-sand bg-clever-cream p-4"
+                  className="rounded-xl border border-primary/30 bg-surface p-4"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-clever-muted">
+                      <p className="text-xs uppercase tracking-wide text-surface-text">
                         {materia.codigo ?? materia.id}
                       </p>
                       <h3 className="text-base font-semibold">{materia.nombre}</h3>
                       {desbloquea.length > 0 && (
-                        <p className="mt-1 text-xs text-clever-muted">
+                        <p className="mt-1 text-xs text-surface-text">
                           Desbloquea:{" "}
                           {desbloquea.map((id) => nombreDe(materias, id)).join(", ")}
                         </p>
                       )}
                     </div>
-                    <label className="block text-xs font-medium text-clever-muted sm:w-40">
+                    <label className="block text-xs font-medium text-surface-text sm:w-40">
                       Avance
                       <select
                         value={estados[materia.id] ?? "pendiente"}
@@ -196,27 +196,29 @@ export function EditorPlan({
                           }));
                           setOk(false);
                         }}
-                        className="mt-1 w-full rounded-lg border border-clever-sand bg-white px-2 py-1.5 text-sm text-clever-ink"
+                        className="mt-1 w-full rounded-lg border border-primary/30 bg-white px-2 py-1.5 text-sm text-text"
                       >
                         <option value="pendiente">Pendiente</option>
                         <option value="cursando">Cursando</option>
                         <option value="aprobada">Aprobada</option>
+                        <option value="libre">Libre</option>
+                        <option value="recursando">Recursando</option>
                       </select>
                     </label>
                   </div>
 
                   <div className="mt-3">
-                    <p className="text-xs font-medium text-clever-muted">Requiere (correlativas)</p>
+                    <p className="text-xs font-medium text-surface-text">Requiere (correlativas)</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {requisitos.length === 0 && (
-                        <span className="text-xs text-clever-muted">Ninguna</span>
+                        <span className="text-xs text-surface-text">Ninguna</span>
                       )}
                       {requisitos.map((id) => (
                         <button
                           key={id}
                           type="button"
                           onClick={() => quitarRequisito(materia.id, id)}
-                          className="rounded-full bg-clever-sky px-2.5 py-1 text-xs text-clever-ink hover:bg-clever-skyMid"
+                          className="rounded-full bg-primary px-2.5 py-1 text-xs text-text hover:bg-primary/50"
                         >
                           {nombreDe(materias, id)} ×
                         </button>
@@ -229,7 +231,7 @@ export function EditorPlan({
                         onChange={(event) => {
                           agregarRequisito(materia.id, event.target.value);
                         }}
-                        className="mt-2 w-full rounded-lg border border-clever-sand bg-white px-2 py-1.5 text-sm"
+                        className="mt-2 w-full rounded-lg border border-primary/30 bg-white px-2 py-1.5 text-sm"
                         aria-label={`Agregar correlativa a ${materia.nombre}`}
                       >
                         <option value="" disabled>

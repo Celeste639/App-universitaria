@@ -7,24 +7,34 @@ const ESTILOS: Record<
   { wrap: string; badge: string; etiqueta: string }
 > = {
   habilitada: {
-    wrap: "border-clever-skyMid bg-clever-sky",
-    badge: "bg-white/80 text-clever-ink",
+    wrap: "border-primary/40 bg-surface",
+    badge: "bg-primary text-primary-text",
     etiqueta: "Habilitada",
   },
   cursando: {
-    wrap: "border-clever-skyDeep bg-clever-cream",
-    badge: "bg-clever-sky text-clever-ink",
+    wrap: "border-primary bg-primary/50",
+    badge: "bg-primary text-primary-text",
     etiqueta: "Cursando",
   },
   aprobada: {
-    wrap: "border-clever-sand bg-clever-beige",
-    badge: "bg-clever-sand text-clever-ink",
+    wrap: "border-success bg-success",
+    badge: "bg-success text-success-text",
     etiqueta: "Aprobada",
   },
   bloqueada: {
-    wrap: "border-clever-sand bg-clever-cream opacity-80",
-    badge: "bg-amber-100 text-amber-800",
+    wrap: "border-primary/20 bg-surface-light opacity-80",
+    badge: "bg-surface text-surface-text",
     etiqueta: "Bloqueada",
+  },
+  libre: {
+    wrap: "border-primary/50 bg-surface",
+    badge: "bg-primary/70 text-primary-text",
+    etiqueta: "Libre",
+  },
+  recursando: {
+    wrap: "border-primary bg-primary/40",
+    badge: "bg-primary text-primary-text",
+    etiqueta: "Recursando",
   },
 };
 
@@ -58,24 +68,24 @@ export function CardMateria({
       <div className="flex items-start justify-between gap-3">
         <div>
           {codigo && (
-            <p className="text-xs font-medium uppercase tracking-wide text-clever-muted">
+            <p className="text-xs font-medium uppercase tracking-wide text-surface-text">
               {codigo}
             </p>
           )}
-          <h3 className="text-base font-semibold text-clever-ink">{nombre}</h3>
+          <h3 className="text-base font-semibold text-text">{nombre}</h3>
         </div>
         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${estilos.badge}`}>
           {estilos.etiqueta}
         </span>
       </div>
       {typeof puntaje === "number" && (
-        <p className="mt-3 text-sm text-clever-muted">
+        <p className="mt-3 text-sm text-surface-text">
           Desbloquea {puntaje} materia{puntaje === 1 ? "" : "s"} futura
           {puntaje === 1 ? "" : "s"}
         </p>
       )}
       {explicacion && (
-        <p className="mt-2 text-sm leading-relaxed text-clever-muted">{explicacion}</p>
+        <p className="mt-2 text-sm leading-relaxed text-surface-text">{explicacion}</p>
       )}
       {mostrarSelector && materiaId && estadoPersistido ? (
         <SelectorEstado materiaId={materiaId} estado={estadoPersistido} />
@@ -83,7 +93,7 @@ export function CardMateria({
       {href && (
         <Link
           href={href}
-          className="mt-3 inline-block text-sm font-medium text-clever-skyDeep hover:underline"
+          className="mt-3 inline-block text-sm font-medium text-primary-text hover:underline"
         >
           Abrir materia
         </Link>

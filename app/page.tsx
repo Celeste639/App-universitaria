@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoTraza } from "@/components/LogoTraza";
 import { getAuthUser } from "@/lib/auth";
 
 export default async function HomePage() {
@@ -6,11 +7,12 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-4 py-16">
-      <p className="text-sm font-medium text-clever-skyDeep">Clever</p>
+      <LogoTraza />
+      <p className="mt-6 text-sm font-medium text-primary-text">ORGANIZÁ. PLANIFICÁ. AVANZÁ.</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
         Tu copiloto de IA para la carrera
       </h1>
-      <p className="mt-4 max-w-2xl text-base leading-relaxed text-clever-muted">
+      <p className="mt-4 max-w-2xl text-base leading-relaxed text-surface-text">
         Subí tu plan de estudios, priorizá las materias que más desbloquean y
         armá un calendario de estudio que conviva con el trabajo, el entrenamiento
         y tu método preferido.
@@ -20,13 +22,13 @@ export default async function HomePage() {
           <>
             <Link
               href="/onboarding"
-              className="rounded-lg bg-clever-skyDeep px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4d92b3]"
+              className="rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text"
             >
               Cargar plan
             </Link>
             <Link
               href="/dashboard"
-              className="rounded-lg border border-clever-sand bg-clever-cream px-5 py-2.5 text-center text-sm font-medium text-clever-ink hover:bg-clever-sky"
+              className="rounded-lg border border-primary/40 bg-surface px-5 py-2.5 text-center text-sm font-medium text-text hover:bg-primary/40"
             >
               Ir al dashboard
             </Link>
@@ -35,13 +37,13 @@ export default async function HomePage() {
           <>
             <Link
               href="/registro"
-              className="rounded-lg bg-clever-skyDeep px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#4d92b3]"
+              className="rounded-lg bg-primary px-5 py-2.5 text-center text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text"
             >
               Crear cuenta
             </Link>
             <Link
               href="/login"
-              className="rounded-lg border border-clever-sand bg-clever-cream px-5 py-2.5 text-center text-sm font-medium text-clever-ink hover:bg-clever-sky"
+              className="rounded-lg border border-primary/40 bg-surface px-5 py-2.5 text-center text-sm font-medium text-text hover:bg-primary/40"
             >
               Iniciar sesión
             </Link>

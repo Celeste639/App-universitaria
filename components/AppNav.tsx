@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cerrarSesion } from "@/app/actions/auth";
+import { LogoTraza } from "@/components/LogoTraza";
 import { getAuthUser } from "@/lib/auth";
 
 const LINKS_APP = [
@@ -13,11 +14,10 @@ export async function AppNav() {
   const user = await getAuthUser();
 
   return (
-    <header className="border-b border-clever-sand bg-clever-cream/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-clever-ink">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-clever-skyDeep" />
-          Clever
+    <header className="border-b border-primary/30 bg-primary">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
+        <Link href="/" aria-label="traza, inicio" className="flex h-8 items-center">
+          <LogoTraza />
         </Link>
         <nav className="flex flex-wrap items-center gap-1 text-sm">
           {user ? (
@@ -26,7 +26,7 @@ export async function AppNav() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-lg px-3 py-1.5 text-clever-muted hover:bg-clever-sky hover:text-clever-ink"
+                  className="rounded-lg px-3 py-1.5 text-primary-text hover:bg-surface/60"
                 >
                   {link.label}
                 </Link>
@@ -34,7 +34,7 @@ export async function AppNav() {
               <form action={cerrarSesion}>
                 <button
                   type="submit"
-                  className="rounded-lg px-3 py-1.5 text-clever-muted hover:bg-clever-sky hover:text-clever-ink"
+                  className="rounded-lg px-3 py-1.5 text-primary-text hover:bg-surface/60"
                 >
                   Salir
                 </button>
@@ -44,13 +44,13 @@ export async function AppNav() {
             <>
               <Link
                 href="/login"
-                className="rounded-lg px-3 py-1.5 text-clever-muted hover:bg-clever-sky hover:text-clever-ink"
+                className="rounded-lg px-3 py-1.5 text-primary-text hover:bg-surface/60"
               >
                 Iniciar sesión
               </Link>
               <Link
                 href="/registro"
-                className="rounded-lg bg-clever-skyDeep px-3 py-1.5 font-medium text-white hover:bg-[#4d92b3]"
+                className="rounded-lg bg-surface px-3 py-1.5 font-medium text-surface-text hover:bg-surface-light"
               >
                 Crear cuenta
               </Link>

@@ -37,17 +37,19 @@ export function SelectorEstado({ materiaId, estado }: SelectorEstadoProps) {
 
   return (
     <div className="mt-3">
-      <label className="block text-xs font-medium text-clever-muted">
+      <label className="block text-xs font-medium text-surface-text">
         Tu avance
         <select
           value={valor}
           disabled={pending}
           onChange={(event) => onChange(event.target.value as EstadoMateria)}
-          className="mt-1 w-full rounded-lg border border-clever-sand bg-white px-2 py-1.5 text-sm text-clever-ink disabled:opacity-60"
+          className="mt-1 w-full rounded-lg border border-primary/30 bg-white px-2 py-1.5 text-sm text-text disabled:opacity-60"
         >
           <option value="pendiente">Pendiente</option>
           <option value="cursando">Cursando</option>
           <option value="aprobada">Aprobada</option>
+          <option value="libre">Libre</option>
+          <option value="recursando">Recursando</option>
         </select>
       </label>
       {error && (

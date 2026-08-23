@@ -19,12 +19,12 @@ export default async function RevisarPlanPage({ searchParams }: RevisarPlanPageP
     return (
       <main className="space-y-4">
         <h1 className="text-2xl font-semibold tracking-tight">Revisar plan</h1>
-        <p className="text-sm text-clever-muted">
+        <p className="text-sm text-surface-text">
           Todavía no hay un plan de estudios cargado.
         </p>
         <Link
           href="/onboarding"
-          className="inline-flex rounded-lg bg-clever-skyDeep px-4 py-2 text-sm font-medium text-white hover:bg-[#4d92b3]"
+          className="inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text"
         >
           Cargar plan de estudios
         </Link>
@@ -41,8 +41,8 @@ export default async function RevisarPlanPage({ searchParams }: RevisarPlanPageP
       {recienAnalizado && <AvisoAnalisis />}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Revisar plan</h1>
-        <p className="mt-2 text-sm text-clever-muted">
-          Clever leyó {plan.materias.length} materias y encontró correlativas en{" "}
+        <p className="mt-2 text-sm text-surface-text">
+          traza leyó {plan.materias.length} materias y encontró correlativas en{" "}
           {correlativasDetectadas}. Corregí si hace falta y marcá lo que ya
           cursaste o aprobaste: el ranking se arma con eso.
         </p>

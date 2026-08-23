@@ -11,7 +11,13 @@ create extension if not exists "pgcrypto";
 do $$
 begin
   if not exists (select 1 from pg_type where typname = 'estado_materia') then
-    create type public.estado_materia as enum ('pendiente', 'cursando', 'aprobada');
+    create type public.estado_materia as enum (
+      'pendiente',
+      'cursando',
+      'aprobada',
+      'libre',
+      'recursando'
+    );
   end if;
 end
 $$;
@@ -34,8 +40,32 @@ create table if not exists public.perfil_estudiante (
   tipo_trabajo text,
   horario_rotativo boolean not null default false,
   otras_actividades text,
-  metodo_estudio text
+  metodo_estudio text,
+  materias_por_cuatrimestre integer
 );
+
+alter table public.perfil_estudiante
+  add column if not exists materias_por_cuatrimestre integer;
+
+alter table public.perfil_estudiante
+  add column if not exists preferencias jsonb not null default '{}'::jsonb;
+
+-- Si el enum ya existía con 3 valores, sumamos los nuevos (Postgres 15+).
+alter type public.estado_materia add value if not exists 'libre';
+alter type public.estado_materia add value if not exists 'recursando';
+
+alter table public.avance_carrera
+  add column if not exists nota numeric,
+  add column if not exists fecha date,
+  add column if not exists comentario text,
+  add column if not exists actualizado_en timestamptz not null default now();
+
+alter table public.sesiones_estudio
+  add column if not exists formato text,
+  add column if not exists nivel_detalle text,
+  add column if not exists metodo_timer text,
+  add column if not exists minutos_foco integer,
+  add column if not exists minutos_descanso integer;
 
 create table if not exists public.calendario (
   id uuid primary key default gen_random_uuid(),

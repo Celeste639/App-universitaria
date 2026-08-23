@@ -9,9 +9,16 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Clever",
+  title: "traza",
   description:
-    "Clever te lee el plan de estudios, prioriza materias y arma un calendario de estudio con IA.",
+    "traza te lee el plan de estudios, prioriza materias y arma un calendario de estudio con IA.",
+  icons: {
+    icon: [
+      { url: "/favicon-16.svg", sizes: "16x16", type: "image/svg+xml" },
+      { url: "/traza-icon.svg", sizes: "32x32", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/traza-icon.svg", sizes: "32x32", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
@@ -22,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} min-h-screen bg-clever-beige font-sans text-clever-ink antialiased`}
+        className={`${geistSans.variable} min-h-screen bg-surface-light font-sans text-text antialiased`}
       >
         {children}
       </body>

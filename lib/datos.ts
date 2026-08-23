@@ -8,8 +8,11 @@ import type {
   EventoCalendario,
   Materia,
   PerfilEstudiante,
+  AvanceMateria,
   SesionEstudio,
 } from "@/lib/types";
+import { parsePreferencias } from "@/lib/preferencias";
+import { esEstadoMateria } from "@/lib/estados";
 import type { Json } from "@/types/database";
 import { startOfWeek } from "date-fns";
 
@@ -22,6 +25,7 @@ export type PlanGuardado = {
 export async function cargarPlanYAvance(userId: string): Promise<{
   plan: PlanGuardado | null;
   avance: Map<string, EstadoMateria>;
+  registros: Map<string, AvanceMateria>;
   perfil: PerfilEstudiante | null;
 }> {
   const supabase = createSupabaseServerClient();
@@ -37,12 +41,12 @@ export async function cargarPlanYAvance(userId: string): Promise<{
         .maybeSingle(),
       supabase
         .from("avance_carrera")
-        .select("materia_id, estado")
+        .select("materia_id, estado, nota, fecha, comentario, actualizado_en")
         .eq("user_id", userId),
       supabase
         .from("perfil_estudiante")
         .select(
-          "user_id, horas_trabajo, tipo_trabajo, horario_rotativo, otras_actividades, metodo_estudio",
+          "user_id, horas_trabajo, tipo_trabajo, horario_rotativo, otras_actividades, metodo_estudio, materias_por_cuatrimestre, preferencias",
         )
         .eq("user_id", userId)
         .maybeSingle(),
@@ -61,14 +65,27 @@ export async function cargarPlanYAvance(userId: string): Promise<{
     : null;
 
   const avance = new Map<string, EstadoMateria>();
+  const registros = new Map<string, AvanceMateria>();
   for (const fila of avanceRows ?? []) {
-    avance.set(fila.materia_id, fila.estado);
+    const estado = esEstadoMateria(fila.estado) ? fila.estado : "pendiente";
+    avance.set(fila.materia_id, estado);
+    registros.set(fila.materia_id, {
+      materia_id: fila.materia_id,
+      estado,
+      nota: typeof fila.nota === "number" ? fila.nota : null,
+      fecha: fila.fecha ?? null,
+      comentario: fila.comentario ?? null,
+      actualizado_en: fila.actualizado_en ?? null,
+    });
   }
 
   return {
     plan,
     avance,
-    perfil: perfilRow,
+    registros,
+    perfil: perfilRow
+      ? { ...perfilRow, preferencias: parsePreferencias(perfilRow.preferencias) }
+      : null,
   };
 }
 
@@ -149,11 +166,24 @@ export async function cargarSesionesMateria(
   const supabase = createSupabaseServerClient();
   const { data } = await supabase
     .from("sesiones_estudio")
-    .select("id, materia_id, contenido_original, resumen_ia, creado_en")
+    .select("id, materia_id, contenido_original, resumen_ia, formato, nivel_detalle, creado_en")
     .eq("user_id", userId)
     .eq("materia_id", materiaId)
     .order("creado_en", { ascending: false })
     .limit(20);
 
-  return data ?? [];
+  return (data ?? []).map((fila) => ({
+    ...fila,
+    formato:
+      fila.formato === "bullets" ||
+      fila.formato === "narrativo" ||
+      fila.formato === "flashcards" ||
+      fila.formato === "podcast"
+        ? fila.formato
+        : null,
+    nivel_detalle:
+      fila.nivel_detalle === "rapido" || fila.nivel_detalle === "completo"
+        ? fila.nivel_detalle
+        : null,
+  }));
 }

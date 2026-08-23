@@ -6,9 +6,15 @@ import type { RankingMateria } from "@/lib/types";
 
 type CalendarioDashboardProps = {
   ranking: RankingMateria[];
+  materias?: import("@/lib/types").Materia[];
+  preferencias?: import("@/lib/types").PreferenciasUsuario;
 };
 
-export async function CalendarioDashboard({ ranking }: CalendarioDashboardProps) {
+export async function CalendarioDashboard({
+  ranking,
+  materias = [],
+  preferencias,
+}: CalendarioDashboardProps) {
   const user = await requireAuthUser();
   const cached = await cargarCalendarioSemana(user.id);
   const calendarioResultado = cached
@@ -23,6 +29,8 @@ export async function CalendarioDashboard({ ranking }: CalendarioDashboardProps)
       eventos={calendario.eventos}
       avisos={calendario.avisos}
       resumen={calendario.resumen}
+      materias={materias}
+      preferencias={preferencias}
     />
   );
 }

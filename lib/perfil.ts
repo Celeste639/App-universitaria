@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAuthUser } from "@/lib/auth";
+import { parsePreferencias } from "@/lib/preferencias";
 import type { PerfilEstudiante } from "@/lib/types";
 
 export async function cargarPerfilEstudiante(): Promise<{
@@ -15,10 +16,15 @@ export async function cargarPerfilEstudiante(): Promise<{
   const { data } = await supabase
     .from("perfil_estudiante")
     .select(
-      "user_id, horas_trabajo, tipo_trabajo, horario_rotativo, otras_actividades, metodo_estudio",
+      "user_id, horas_trabajo, tipo_trabajo, horario_rotativo, otras_actividades, metodo_estudio, materias_por_cuatrimestre, preferencias",
     )
     .eq("user_id", user.id)
     .maybeSingle();
 
-  return { userId: user.id, perfil: data };
+  return {
+    userId: user.id,
+    perfil: data
+      ? { ...data, preferencias: parsePreferencias(data.preferencias) }
+      : null,
+  };
 }

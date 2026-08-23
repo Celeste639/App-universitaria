@@ -61,6 +61,8 @@ export function estadoVisualMateria(
 ): EstadoVisualMateria {
   if (estado === "aprobada") return "aprobada";
   if (estado === "cursando") return "cursando";
+  if (estado === "recursando") return "recursando";
+  if (estado === "libre") return "libre";
 
   const requisitos =
     correlativas.find((item) => item.materia_id === materiaId)?.requiere ?? [];

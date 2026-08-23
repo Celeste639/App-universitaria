@@ -1,4 +1,9 @@
-export type EstadoMateria = "pendiente" | "cursando" | "aprobada";
+export type EstadoMateria =
+  | "pendiente"
+  | "cursando"
+  | "aprobada"
+  | "libre"
+  | "recursando";
 
 export type Json =
   | string
@@ -43,6 +48,8 @@ export type Database = {
           horario_rotativo: boolean;
           otras_actividades: string | null;
           metodo_estudio: string | null;
+          materias_por_cuatrimestre: number | null;
+          preferencias: Json;
         };
         Insert: {
           user_id: string;
@@ -51,6 +58,8 @@ export type Database = {
           horario_rotativo?: boolean;
           otras_actividades?: string | null;
           metodo_estudio?: string | null;
+          materias_por_cuatrimestre?: number | null;
+          preferencias?: Json;
         };
         Update: {
           user_id?: string;
@@ -59,6 +68,8 @@ export type Database = {
           horario_rotativo?: boolean;
           otras_actividades?: string | null;
           metodo_estudio?: string | null;
+          materias_por_cuatrimestre?: number | null;
+          preferencias?: Json;
         };
         Relationships: [];
       };
@@ -90,6 +101,11 @@ export type Database = {
           materia_id: string;
           contenido_original: string | null;
           resumen_ia: string | null;
+          formato: string | null;
+          nivel_detalle: string | null;
+          metodo_timer: string | null;
+          minutos_foco: number | null;
+          minutos_descanso: number | null;
           creado_en: string;
         };
         Insert: {
@@ -98,6 +114,11 @@ export type Database = {
           materia_id: string;
           contenido_original?: string | null;
           resumen_ia?: string | null;
+          formato?: string | null;
+          nivel_detalle?: string | null;
+          metodo_timer?: string | null;
+          minutos_foco?: number | null;
+          minutos_descanso?: number | null;
           creado_en?: string;
         };
         Update: {
@@ -106,6 +127,11 @@ export type Database = {
           materia_id?: string;
           contenido_original?: string | null;
           resumen_ia?: string | null;
+          formato?: string | null;
+          nivel_detalle?: string | null;
+          metodo_timer?: string | null;
+          minutos_foco?: number | null;
+          minutos_descanso?: number | null;
           creado_en?: string;
         };
         Relationships: [];
@@ -115,16 +141,28 @@ export type Database = {
           user_id: string;
           materia_id: string;
           estado: EstadoMateria;
+          nota: number | null;
+          fecha: string | null;
+          comentario: string | null;
+          actualizado_en: string;
         };
         Insert: {
           user_id: string;
           materia_id: string;
           estado?: EstadoMateria;
+          nota?: number | null;
+          fecha?: string | null;
+          comentario?: string | null;
+          actualizado_en?: string;
         };
         Update: {
           user_id?: string;
           materia_id?: string;
           estado?: EstadoMateria;
+          nota?: number | null;
+          fecha?: string | null;
+          comentario?: string | null;
+          actualizado_en?: string;
         };
         Relationships: [];
       };

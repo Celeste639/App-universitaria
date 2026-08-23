@@ -1,10 +1,38 @@
-export type EstadoMateria = "pendiente" | "cursando" | "aprobada";
+export type EstadoMateria =
+  | "pendiente"
+  | "cursando"
+  | "aprobada"
+  | "libre"
+  | "recursando";
 
 export type EstadoVisualMateria =
   | "habilitada"
   | "cursando"
   | "aprobada"
-  | "bloqueada";
+  | "bloqueada"
+  | "libre"
+  | "recursando";
+
+export type FormatoSesion = "bullets" | "narrativo" | "flashcards" | "podcast";
+export type NivelDetalle = "rapido" | "completo";
+export type MetodoTimer = "pomodoro" | "profundo" | "custom";
+export type VistaCalendario = "week" | "month";
+export type TarjetaDashboard =
+  | "porcentaje"
+  | "proximas_fechas"
+  | "prioritarias"
+  | "tiempo_egreso";
+
+export type PreferenciasUsuario = {
+  formato_sesion: FormatoSesion;
+  nivel_detalle: NivelDetalle;
+  metodo_timer: MetodoTimer;
+  minutos_foco: number;
+  minutos_descanso: number;
+  vista_calendario: VistaCalendario;
+  colores_materias: Record<string, string>;
+  tarjetas_dashboard: TarjetaDashboard[];
+};
 
 export type TipoDocumentoPlan = "plan" | "correlativas" | "cronograma";
 
@@ -37,6 +65,8 @@ export type PerfilEstudiante = {
   horario_rotativo: boolean;
   otras_actividades: string | null;
   metodo_estudio: string | null;
+  materias_por_cuatrimestre: number | null;
+  preferencias: PreferenciasUsuario;
 };
 
 export type TipoEventoCalendario =
@@ -74,12 +104,18 @@ export type SesionEstudio = {
   materia_id: string;
   contenido_original: string | null;
   resumen_ia: string | null;
+  formato: FormatoSesion | null;
+  nivel_detalle: NivelDetalle | null;
   creado_en: string;
 };
 
 export type AvanceMateria = {
   materia_id: string;
   estado: EstadoMateria;
+  nota?: number | null;
+  fecha?: string | null;
+  comentario?: string | null;
+  actualizado_en?: string | null;
 };
 
 export type ResultadoAccion<T> =

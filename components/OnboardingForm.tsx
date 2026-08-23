@@ -61,7 +61,7 @@ export function OnboardingForm() {
     >
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Documentos de la carrera</h2>
-        <p className="text-sm text-clever-muted">
+        <p className="text-sm text-surface-text">
           El plan de estudios alcanza para avanzar. Si tenés correlativas o el
           cronograma de dictado, sumalos — o subí toda la carpeta. Los PDF largos
           (20+ páginas) entran bien.
@@ -76,22 +76,22 @@ export function OnboardingForm() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-clever-ink">
+        <label className="block text-sm font-medium text-text">
           Horas de trabajo por semana
           <input
             name="horas_trabajo"
             type="number"
             min={0}
             max={80}
-            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-primary/30 bg-surface px-3 py-2 text-sm"
           />
         </label>
-        <label className="block text-sm font-medium text-clever-ink">
+        <label className="block text-sm font-medium text-text">
           Tipo de trabajo
           <select
             name="tipo_trabajo"
             defaultValue=""
-            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-primary/30 bg-surface px-3 py-2 text-sm"
           >
             <option value="" disabled>
               Elegí una opción
@@ -102,30 +102,30 @@ export function OnboardingForm() {
             <option value="rotativo">Turnos / rotativo</option>
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-clever-ink sm:col-span-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-text sm:col-span-2">
           <input
             name="horario_rotativo"
             type="checkbox"
             value="true"
-            className="h-4 w-4 rounded border-clever-sand"
+            className="h-4 w-4 rounded border-primary/30"
           />
           Tengo horario rotativo
         </label>
-        <label className="block text-sm font-medium text-clever-ink sm:col-span-2">
+        <label className="block text-sm font-medium text-text sm:col-span-2">
           Otras actividades (entrenamiento, cuidados, etc.)
           <textarea
             name="otras_actividades"
             rows={3}
-            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-primary/30 bg-surface px-3 py-2 text-sm"
             placeholder="Ej. entreno de 19 a 21, lunes a jueves"
           />
         </label>
-        <label className="block text-sm font-medium text-clever-ink sm:col-span-2">
+        <label className="block text-sm font-medium text-text sm:col-span-2">
           Método de estudio preferido
           <select
             name="metodo_estudio"
             defaultValue="pomodoro"
-            className="mt-1 w-full rounded-lg border border-clever-sand bg-clever-cream px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-lg border border-primary/30 bg-surface px-3 py-2 text-sm"
           >
             <option value="pomodoro">Pomodoro</option>
             <option value="bloques_largos">Bloques largos</option>
@@ -138,15 +138,15 @@ export function OnboardingForm() {
         <ErrorMessage title="No pudimos procesar el onboarding" message={error} />
       )}
       {listo && (
-        <p className="rounded-xl border border-clever-skyMid bg-clever-sky px-4 py-3 text-sm text-clever-ink" role="status">
-          Clever ya analizó tu plan. Te avisamos y te llevamos a revisar correlativas.
+        <p className="rounded-xl border border-accent bg-primary px-4 py-3 text-sm text-text" role="status">
+          traza ya analizó tu plan. Te avisamos y te llevamos a revisar correlativas.
         </p>
       )}
 
       <button
         type="submit"
         disabled={enviando || listo}
-        className="w-full rounded-lg bg-clever-skyDeep px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4d92b3] disabled:cursor-not-allowed disabled:bg-clever-skyMid sm:w-auto"
+        className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-text hover:bg-accent hover:text-accent-text disabled:cursor-not-allowed disabled:bg-primary/50 sm:w-auto"
       >
         {enviando ? "Leyendo los documentos con IA…" : listo ? "Análisis listo" : "Guardar y continuar"}
       </button>

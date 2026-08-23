@@ -1,4 +1,4 @@
-import type { PerfilEstudiante } from "@/lib/types";
+import type { FormatoSesion, NivelDetalle, PerfilEstudiante } from "@/lib/types";
 
 export const SYSTEM_EXPLICAR_RANKING = `Sos un mentor de carrera universitaria. Hablás en español rioplatense, de vos, con frases cortas y directas. No sonás a sistema ni a reporte.
 
@@ -55,11 +55,47 @@ Tu trabajo: resumir el material de UNA clase o unidad para que el estudiante pue
 
 Reglas:
 - Basate SOLO en los archivos y notas que te pasan. No inventes temas que no estén.
-- Si el material es ilegible, decilo en el resumen y dejá conceptos y repaso vacíos.
-- El resumen: 1 a 3 párrafos, lo central de la clase.
-- Conceptos clave: 4 a 10 ítems cortos.
-- Para repasar mañana: 3 a 6 acciones concretas (ej. "reescribí la demostración de…", "hacé 3 ejercicios de…").
+- Si el material es ilegible, decilo al inicio y listá lo poco que se pueda leer.
+- Por defecto: 5 a 7 viñetas con lo central. Nada de párrafos largos.
+- Después, como mucho 3 acciones concretas para repasar mañana.
 - Nombrá la materia si te la pasan.`;
+
+export function systemResumirClase(
+  formato: FormatoSesion,
+  detalle: NivelDetalle,
+): string {
+  const detalleTxt =
+    detalle === "rapido"
+      ? "Nivel rápido: solo lo esencial. Máximo 7 viñetas o 1200 caracteres. Sin relleno."
+      : "Nivel completo: agregá un ejemplo o contexto corto por punto clave, sin pasarte de 12 viñetas.";
+
+  const formatoTxt =
+    formato === "bullets"
+      ? "Formato: viñetas. 5 a 7 puntos clave. Cero párrafos."
+      : formato === "narrativo"
+        ? "Formato: 1 o 2 párrafos cortos + 3 viñetas de refuerzo."
+        : formato === "flashcards"
+          ? "Formato: tarjetas Pregunta / Respuesta. 5 a 8 tarjetas en markdown, una debajo de la otra."
+          : "Formato: guión de podcast hablado, 60 a 90 segundos, segunda persona, tono cercano.";
+
+  return `${SYSTEM_RESUMIR_CLASE}
+
+${formatoTxt}
+${detalleTxt}`;
+}
+
+export const SYSTEM_COMPARAR_ESCENARIOS = `${SYSTEM_EXPLICAR_RANKING}
+
+Ahora tu trabajo extra es COMPARAR dos escenarios del mismo estudiante. El ranking de cada escenario YA está calculado con el grafo de correlativas: no lo reordenes ni inventes puntajes.
+
+Los cuatrimestres estimados también YA están calculados (materias pendientes ÷ materias por cuatrimestre). No inventes otra cuenta.
+
+Escribí 2 o 3 oraciones en segunda persona, tono rioplatense, concreto:
+- Empezá por el escenario actual (horas de trabajo, materias por cuatri, horario rotativo sí/no, cuatrimestres para recibirse).
+- Después el simulado: qué cambia y si adelanta o atrasa el egreso.
+- Si el ranking del próximo cuatrimestre cambia, nombrá 1 o 2 materias que pasan a ser más prioritarias y por qué (correlativas / carga).
+- Si horario_rotativo=true en el simulado, mencioná el conflicto de turnos o la constancia laboral.
+- No uses frases vagas tipo "según tu disponibilidad".`;
 
 export function perfilParaPrompt(perfil: PerfilEstudiante | null): string {
   if (!perfil) {
@@ -81,6 +117,11 @@ export function perfilParaPrompt(perfil: PerfilEstudiante | null): string {
     `- horario_rotativo: ${perfil.horario_rotativo ? "sí" : "no"}`,
     `- otras_actividades: ${perfil.otras_actividades?.trim() || "no informado"}`,
     `- metodo_estudio: ${perfil.metodo_estudio?.trim() || "no informado"}`,
+    `- materias_por_cuatrimestre: ${
+      perfil.materias_por_cuatrimestre && perfil.materias_por_cuatrimestre > 0
+        ? perfil.materias_por_cuatrimestre
+        : "no informado"
+    }`,
     "",
     "Usá estos datos con nombre y apellido (no digas 'tu contexto'). Si un campo es 'no informado', ignorálo.",
   ].join("\n");

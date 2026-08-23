@@ -12,15 +12,25 @@ const config: Config = {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
       },
       colors: {
-        clever: {
-          beige: "#F4EDE3",
-          cream: "#FBF7F1",
-          sand: "#E6D9C6",
-          sky: "#D4EEF8",
-          skyMid: "#A9D4EA",
-          skyDeep: "#6BAFCD",
-          ink: "#3D4A55",
-          muted: "#6B7680",
+        primary: {
+          DEFAULT: "#B6CFDB",
+          text: "#2C4A56",
+        },
+        surface: {
+          DEFAULT: "#F1E2CF",
+          light: "#F7EFE4",
+          text: "#5A4A32",
+        },
+        accent: {
+          DEFAULT: "#8AB0C4",
+          text: "#1E3A47",
+        },
+        success: {
+          DEFAULT: "#A9CBA0",
+          text: "#22391B",
+        },
+        text: {
+          DEFAULT: "#444544",
         },
       },
     },
