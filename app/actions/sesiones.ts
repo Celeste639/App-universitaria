@@ -90,7 +90,7 @@ export async function resumirContenidoClase(
       ok: false,
       error: mensajeErrorSupabase(
         error,
-        "El resumen se armó, pero no pude guardarlo. Ejecutá supabase/schema.sql si faltan tablas.",
+        "El resumen se armó, pero no pude guardarlo. Probá de nuevo en unos segundos.",
       ),
     };
   }

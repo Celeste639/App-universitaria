@@ -79,10 +79,18 @@ export function FormSesionMateria({ materiaId, preferencias }: FormSesionMateria
           const evento = bloque.match(/^event: (.+)$/m)?.[1];
           const dataLine = bloque.match(/^data: (.+)$/m)?.[1];
           if (!evento || !dataLine) continue;
-          const data = JSON.parse(dataLine) as { texto?: string; error?: string };
+          const data = JSON.parse(dataLine) as {
+            texto?: string;
+            error?: string;
+            resumen?: string;
+          };
           if (evento === "delta" || evento === "parcial") {
             texto += data.texto ?? "";
             setEnVivo(texto);
+          }
+          if (evento === "done" && data.resumen) {
+            texto = data.resumen;
+            setEnVivo(data.resumen);
           }
           if (evento === "error") {
             setError(data.error ?? "No pude generar el resumen.");
@@ -131,8 +139,8 @@ export function FormSesionMateria({ materiaId, preferencias }: FormSesionMateria
             onChange={(event) => setDetalle(event.target.value as NivelDetalle)}
             className="mt-1 w-full rounded-lg border border-primary/30 bg-white px-3 py-2 text-sm"
           >
-            <option value="rapido">Rápido (solo lo esencial)</option>
-            <option value="completo">Completo (con ejemplos)</option>
+            <option value="rapido">Rápido (5–7 viñetas)</option>
+            <option value="completo">Completo (acotado, con ejemplos)</option>
           </select>
         </label>
         <label className="block text-sm font-medium">
@@ -187,8 +195,8 @@ export function FormSesionMateria({ materiaId, preferencias }: FormSesionMateria
         onChange={(event) => setNotas(event.target.value)}
         disabled={enviando}
         className="w-full rounded-lg border border-primary/30 bg-white px-3 py-2 text-sm"
-        rows={6}
-        placeholder="O pegá acá las notas de la clase…"
+        rows={4}
+        placeholder="Notas de la clase (opcional si ya subiste un PDF). El resumen sale corto."
       />
       {enVivo && (
         <div className="rounded-xl border border-accent/40 bg-white p-4" aria-live="polite">

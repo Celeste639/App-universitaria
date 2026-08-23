@@ -100,7 +100,7 @@ export async function completarOnboarding(
       ok: false,
       error: mensajeErrorSupabase(
         errorPlan,
-        "No pude guardar el plan en la base. Ejecutá supabase/schema.sql en el SQL Editor de Supabase.",
+        "No pude guardar el plan. Probá de nuevo en unos segundos.",
       ),
     };
   }

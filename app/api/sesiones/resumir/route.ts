@@ -141,7 +141,7 @@ export async function POST(request: Request) {
         send("error", {
           error: mensajeErrorSupabase(
             error,
-            "El resumen se armó, pero no pude guardarlo. Ejecutá supabase/schema.sql.",
+            "El resumen se armó, pero no pude guardarlo. Probá de nuevo en unos segundos.",
           ),
         });
         controller.close();

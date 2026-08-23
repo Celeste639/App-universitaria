@@ -66,8 +66,8 @@ export default async function MateriaPage({ params }: MateriaPageProps) {
         <section className="rounded-xl border border-primary/30 bg-surface p-5 shadow-sm">
           <h2 className="text-lg font-medium">Sesión de estudio</h2>
           <p className="mt-1 text-sm text-surface-text">
-            Subí uno o varios PDF de la materia (clases de 20+ páginas entran) o
-            pegá tus notas. traza guarda el resumen acá.
+            Subí un PDF o pegá notas. El resumen queda corto para repasarlo
+            mañana — no un apunte largo.
           </p>
           <div className="mt-4">
             <FormSesionMateria

@@ -36,7 +36,7 @@ export function AuthForm({ modo, next = "/dashboard" }: AuthFormProps) {
 
       if ("confirmarEmail" in resultado.data && resultado.data.confirmarEmail) {
         setAviso(
-          "Te mandamos un email de confirmación. Si no llega, en Supabase desactivá Confirm email en Authentication → Providers.",
+          "Te mandamos un email de confirmación. Revisá spam. Si no llega, avisá a quien administra la app.",
         );
         return;
       }

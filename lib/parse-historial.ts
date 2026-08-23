@@ -138,7 +138,7 @@ Si figura como libre, libre.`,
   } catch (error) {
     const texto = error instanceof Error ? error.message : "";
     if (texto.toLowerCase().includes("api key") || texto.includes("ANTHROPIC")) {
-      return { ok: false, error: "Falta configurar ANTHROPIC_API_KEY en .env.local." };
+      return { ok: false, error: "No pude leer el historial ahora. Avisá a quien administra la app." };
     }
     return { ok: false, error: "No pude leer el historial ahora. Probá de nuevo." };
   }

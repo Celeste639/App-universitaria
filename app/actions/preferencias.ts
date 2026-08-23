@@ -45,7 +45,7 @@ export async function guardarPreferenciasUsuario(
       ok: false,
       error: mensajeErrorSupabase(
         error,
-        "No pude guardar las preferencias. Ejecutá supabase/schema.sql para sumar la columna preferencias.",
+        "No pude guardar las preferencias. Probá de nuevo en unos segundos.",
       ),
     };
   }

@@ -41,31 +41,9 @@ create table if not exists public.perfil_estudiante (
   horario_rotativo boolean not null default false,
   otras_actividades text,
   metodo_estudio text,
-  materias_por_cuatrimestre integer
+  materias_por_cuatrimestre integer,
+  preferencias jsonb not null default '{}'::jsonb
 );
-
-alter table public.perfil_estudiante
-  add column if not exists materias_por_cuatrimestre integer;
-
-alter table public.perfil_estudiante
-  add column if not exists preferencias jsonb not null default '{}'::jsonb;
-
--- Si el enum ya existía con 3 valores, sumamos los nuevos (Postgres 15+).
-alter type public.estado_materia add value if not exists 'libre';
-alter type public.estado_materia add value if not exists 'recursando';
-
-alter table public.avance_carrera
-  add column if not exists nota numeric,
-  add column if not exists fecha date,
-  add column if not exists comentario text,
-  add column if not exists actualizado_en timestamptz not null default now();
-
-alter table public.sesiones_estudio
-  add column if not exists formato text,
-  add column if not exists nivel_detalle text,
-  add column if not exists metodo_timer text,
-  add column if not exists minutos_foco integer,
-  add column if not exists minutos_descanso integer;
 
 create table if not exists public.calendario (
   id uuid primary key default gen_random_uuid(),
@@ -81,6 +59,11 @@ create table if not exists public.sesiones_estudio (
   materia_id text not null,
   contenido_original text,
   resumen_ia text,
+  formato text,
+  nivel_detalle text,
+  metodo_timer text,
+  minutos_foco integer,
+  minutos_descanso integer,
   creado_en timestamptz not null default now()
 );
 
@@ -88,8 +71,36 @@ create table if not exists public.avance_carrera (
   user_id uuid not null references auth.users (id) on delete cascade,
   materia_id text not null,
   estado public.estado_materia not null default 'pendiente',
+  nota numeric,
+  fecha date,
+  comentario text,
+  actualizado_en timestamptz not null default now(),
   primary key (user_id, materia_id)
 );
+
+-- Columnas y valores de enum para bases que ya tenían el esquema viejo.
+-- CREATE TABLE IF NOT EXISTS no agrega columnas a una tabla existente.
+alter table public.perfil_estudiante
+  add column if not exists materias_por_cuatrimestre integer;
+
+alter table public.perfil_estudiante
+  add column if not exists preferencias jsonb not null default '{}'::jsonb;
+
+alter type public.estado_materia add value if not exists 'libre';
+alter type public.estado_materia add value if not exists 'recursando';
+
+alter table public.avance_carrera
+  add column if not exists nota numeric,
+  add column if not exists fecha date,
+  add column if not exists comentario text,
+  add column if not exists actualizado_en timestamptz not null default now();
+
+alter table public.sesiones_estudio
+  add column if not exists formato text,
+  add column if not exists nivel_detalle text,
+  add column if not exists metodo_timer text,
+  add column if not exists minutos_foco integer,
+  add column if not exists minutos_descanso integer;
 
 -- ---------------------------------------------------------------------------
 -- Índices
@@ -336,3 +347,5 @@ create policy "clases_storage_delete_own"
 --             "materia_id": "ALG1", "tipo": "estudio",
 --             "aviso": "consultar disponibilidad con el profesor" }]
 -- ---------------------------------------------------------------------------
+
+notify pgrst, 'reload schema';
